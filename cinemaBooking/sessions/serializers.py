@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Session
+from cinemaBooking.sessions.models import Session
 
 class SessionSerializer(serializers.ModelSerializer):
     class Meta:

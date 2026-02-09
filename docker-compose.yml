@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:15
+    container_name: cinema_db
+    environment:
+      POSTGRES_USER: cinema_user
+      POSTGRES_PASSWORD: strongpassword
+      POSTGRES_DB: cinema_booking
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: cinema_backend
+    depends_on:
+      - db
+    environment:
+      DJANGO_SECRET_KEY: askv@=d55rxv79l29^g-j6+n7v8ky(3kdgusfcdf^s0-@eb)lq
+      DJANGO_DEBUG: "1"
+      DATABASE_URL: postgresql://cinema_user:strongpassword@db:5432/cinema_booking
+    volumes:
+      - .:/app
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    command: sh -c "python wait_for_db.py && python manage.py migrate --noinput && gunicorn cinemaBooking.wsgi:application --bind 0.0.0.0:8000"
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

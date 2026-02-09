@@ -1,6 +1,34 @@
-from rest_framework import generics
-from .models import Session
-from .serializers import SessionSerializer
+from django.shortcuts import get_object_or_404
+from rest_framework import status, generics
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from cinemaBooking.sessions.models import Session
+from cinemaBooking.seats.models import Seat
+from cinemaBooking.seats.serializers import SeatSerializer
+from cinemaBooking.bookings.models import BookingSeat
+from cinemaBooking.sessions.serializers import SessionSerializer
+
+
+def get(request, session_id):
+    session = get_object_or_404(Session, pk=session_id)
+
+    seats_in_hall = Seat.objects.filter(hall=session.hall)
+
+    booked_seat_ids = BookingSeat.objects.filter(
+        booking__session=session,
+        booking__status__in=['P', 'C']
+    ).values_list('seat_id', flat=True)
+
+    available_seats = seats_in_hall.exclude(id__in=booked_seat_ids)
+
+    serializer = SeatSerializer(available_seats, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AvailableSeatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
 
 class SessionListCreateView(generics.ListCreateAPIView):
     queryset = Session.objects.all()

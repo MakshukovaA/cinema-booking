@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import Booking
+from cinemaBooking.bookings.models import Booking
 
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
-        fields = '__all__'
+        fields = ['user', 'session', 'total_price', 'status', 'created_at', 'seats']

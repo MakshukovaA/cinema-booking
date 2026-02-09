@@ -1,13 +1,25 @@
 from pathlib import Path
 import os
+import environ
+import dj_database_url
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'REPLACE_ME_WITH_A_REAL_SECRET_KEY')
+env = environ.Env()
+env_file = os.path.join(BASE_DIR, '.env')
+if os.path.exists(env_file):
+    environ.Env.read_env(env_file)
 
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+SECRET_KEY = env('SECRET_KEY', default='askv@=d55rxv79l29^g-j6+n7v8ky(3kdgusfcdf^s0-@eb)lq')
+DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
+allowed_from_env = env.list('ALLOWED_HOSTS', default=[])
+if allowed_from_env:
+    ALLOWED_HOSTS = allowed_from_env
+else:
+    ALLOWED_HOSTS_ENV = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',') if host.strip()] if ALLOWED_HOSTS_ENV else []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -17,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
     'cinemaBooking.halls',
     'cinemaBooking.seats',
@@ -59,16 +72,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cinemaBooking.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'cinema_booking'),
-        'USER': os.environ.get('POSTGRES_USER', 'cinema_user'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'strongpassword'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+db_url = os.environ.get('DATABASE_URL')
+if db_url:
+    DATABASES = {
+        'default': dj_database_url.config(default=db_url)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'cinema_booking'),
+            'USER': os.environ.get('POSTGRES_USER', 'cinema_user'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'strongpassword'),
+            'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        }
+    }
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -78,6 +97,25 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES':
+        ( 'rest_framework_simplejwt.authentication.JWTAuthentication',
+          'rest_framework.authentication.SessionAuthentication', ),
+    'DEFAULT_PERMISSION_CLASSES':
+        ( 'rest_framework.permissions.IsAuthenticated', ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id', }
 
 LANGUAGE_CODE = 'ru-RU'
 TIME_ZONE = 'UTC'
@@ -92,4 +130,9 @@ MEDIA_ROOT = str(BASE_DIR / 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    origin.strip() for origin in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if origin.strip()
+]
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True

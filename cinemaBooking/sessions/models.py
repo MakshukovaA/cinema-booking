@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils import timezone
 
 class Session(models.Model):
     movie = models.ForeignKey('movies.Movie', on_delete=models.CASCADE, related_name='sessions')

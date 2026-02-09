@@ -1,3 +1,7 @@
 from django.contrib import admin
+from cinemaBooking.pricing.models import Pricing
 
-# Register your models here.
+@admin.register(Pricing)
+class PricingAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price')
+    search_fields = ('name',)
