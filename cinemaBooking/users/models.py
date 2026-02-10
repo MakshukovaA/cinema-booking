@@ -1,6 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+import secrets
+import string
+
+def generate_ticket_code():
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(16))
 
 class User(AbstractUser):
     pass
