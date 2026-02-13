@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.http import HttpResponse
 import csv
-from .models import Ticket
+from cinemaBooking.tickets.models import Ticket
 
 def export_tickets_csv(_request, queryset):
     header = ['id', 'code', 'booking_id', 'seat_id', 'price', 'issued_at', 'has_qr']

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import BookingListCreateView, BookingDetailView
+from cinemaBooking.bookings.views import BookingListCreateView, BookingDetailView
 from cinemaBooking.sessions.views import AvailableSeatsView
 
 urlpatterns = [

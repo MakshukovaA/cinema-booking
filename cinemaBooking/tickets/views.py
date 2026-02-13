@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissionsOrAnonReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from cinemaBooking.halls.models import Hall
-from cinemaBooking.seats.models import Seat
+from cinemaBooking.halls.models import Seat
 from cinemaBooking.movies.models import Movie
 from cinemaBooking.sessions.models import Session
 from cinemaBooking.pricing.models import Pricing

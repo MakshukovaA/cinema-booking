@@ -1,10 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import (
-    HallViewSet, SeatViewSet, MovieViewSet, SessionViewSet,
-    PricingViewSet, BookingViewSet, TicketViewSet
-)
-from .serializers import UserSerializer
+from cinemaBooking.tickets.views import (HallViewSet, SeatViewSet, MovieViewSet, SessionViewSet, PricingViewSet, BookingViewSet, TicketViewSet)
+from cinemaBooking.tickets.serializers import UserSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.permissions import DjangoModelPermissions

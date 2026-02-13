@@ -4,9 +4,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import Booking, BookingSeat
+from cinemaBooking.bookings.models import Booking, BookingSeat
 from .serializers import BookingSerializer
-from cinemaBooking.seats.models import Seat
+from cinemaBooking.halls.models import Seat
 from cinemaBooking.sessions.models import Session
 from cinemaBooking.core.permissions import AdminOrGuestReadOnly, IsAdminGroup
 

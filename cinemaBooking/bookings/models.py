@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from decimal import Decimal
+from cinemaBooking.sessions.models import Session
 
 STATUS_CHOICES = [
     ('P', 'Pending'),
@@ -11,11 +12,11 @@ STATUS_CHOICES = [
 
 class Booking(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookings_as_creator')
-    session = models.ForeignKey('cinema_booking_sessions.Session', on_delete=models.CASCADE, related_name='bookings')
+    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='bookings')
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P')
     created_at = models.DateTimeField(auto_now_add=True)
-    seats = models.ManyToManyField('seats.Seat', through='BookingSeat', related_name='bookings')
+    seats = models.ManyToManyField('halls.Seat', through='BookingSeat', related_name='bookings')
 
     def __str__(self):
         return f'Booking {self.id} by {self.user} for {self.session}'
@@ -37,7 +38,7 @@ class Booking(models.Model):
 
 class BookingSeat(models.Model):
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='booking_seats')
-    seat = models.ForeignKey('seats.Seat', on_delete=models.CASCADE, related_name='booking_seats')
+    seat = models.ForeignKey('halls.Seat', on_delete=models.CASCADE, related_name='booking_seats')
     price = models.DecimalField(max_digits=6, decimal_places=2)
 
     class Meta:

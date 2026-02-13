@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from cinemaBooking.sessions.models import Session
-from cinemaBooking.seats.models import Seat
+from cinemaBooking.halls.models import Seat
 from cinemaBooking.seats.serializers import SeatSerializer
 from cinemaBooking.bookings.models import BookingSeat
 from cinemaBooking.sessions.serializers import SessionSerializer

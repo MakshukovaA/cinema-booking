@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from cinemaBooking.seats.models import Seat
+from cinemaBooking.halls.models import Seat
 
 class SeatSerializer(serializers.ModelSerializer):
     hall_name = serializers.CharField(source='hall.name', read_only=True)
