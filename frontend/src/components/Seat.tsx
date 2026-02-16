@@ -63,13 +63,11 @@ const SeatComponent: React.FC<SeatProps> = ({ seat, onClick, isInteractive = tru
         {seat.seatNumber}
       </div>
       <div className="mt-1 flex flex-col items-center">
-        {/* Row indicator on top for first seat in row */}
         {seat.seatNumber === 1 && (
           <span className="text-xs font-medium text-gray-500 mb-1">
             Ряд {seat.row}
           </span>
         )}
-        {/* Price indicator */}
         {seat.status === 'available' && (
           <span className="text-xs font-semibold text-gray-700">
             {seat.priceCategory === 1 ? '800₽' : '1200₽'}

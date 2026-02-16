@@ -1,7 +1,6 @@
 import React from 'react';
 import SessionItem from './SessionItem';
 
-// Примерный тип для сеанса
 interface Session {
   id: string;
   startTime: string;
@@ -11,8 +10,8 @@ interface Session {
 }
 
 interface SessionListProps {
-  sessions: Session[]; // Компонент принимает массив сеансов
-  filmId: string; // Передаем filmId для SessionItem
+  sessions: Session[]; 
+  filmId: string;
 }
 
 const SessionList: React.FC<SessionListProps> = ({ sessions, filmId }) => {

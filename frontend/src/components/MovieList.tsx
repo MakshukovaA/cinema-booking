@@ -13,7 +13,6 @@ const MovieList: React.FC<MovieListProps> = ({ films }) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {/* Перебираем массив фильмов и для каждого создаем MovieCard */}
       {films.map(film => (
         <MovieCard key={film.id} film={film} />
       ))}

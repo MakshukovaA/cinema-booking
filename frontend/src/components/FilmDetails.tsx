@@ -23,10 +23,8 @@ const FilmDetails: React.FC<FilmDetailsProps> = ({ film }) => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-800 to-purple-900 text-white rounded-2xl overflow-hidden mb-8">
         <div className="relative">
-          {/* Background Image */}
           {hasBackgroundImage && (
             <div 
               className="absolute inset-0 bg-cover bg-center opacity-20"
@@ -36,10 +34,8 @@ const FilmDetails: React.FC<FilmDetailsProps> = ({ film }) => {
             ></div>
           )}
           
-          {/* Content */}
           <div className="relative z-10 p-8 md:p-12">
             <div className="flex flex-col md:flex-row gap-8">
-              {/* Poster */}
               <div className="flex-shrink-0">
                 <img 
                   src={film.posterUrl} 
@@ -50,7 +46,6 @@ const FilmDetails: React.FC<FilmDetailsProps> = ({ film }) => {
                 />
               </div>
               
-              {/* Film Info */}
               <div className="flex-grow">
                 <div className="mb-6">
                   <span className="inline-block bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full text-sm mb-4">
@@ -85,7 +80,6 @@ const FilmDetails: React.FC<FilmDetailsProps> = ({ film }) => {
                   </div>
                 </div>
 
-                {/* Description */}
                 <div className="mb-8">
                   <h2 className="text-2xl font-semibold mb-4">Описание</h2>
                   <p className="text-gray-200 text-lg leading-relaxed">
@@ -93,7 +87,6 @@ const FilmDetails: React.FC<FilmDetailsProps> = ({ film }) => {
                   </p>
                 </div>
 
-                {/* Additional Info */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {film.director && (
                     <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl">
@@ -120,7 +113,6 @@ const FilmDetails: React.FC<FilmDetailsProps> = ({ film }) => {
         </div>
       </div>
 
-      {/* Галерея изображений */}
       {film.gallery && film.gallery.length > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Галерея</h2>
@@ -146,7 +138,6 @@ const FilmDetails: React.FC<FilmDetailsProps> = ({ film }) => {
         </div>
       )}
 
-      {/* Action Buttons */}
       <div className="flex flex-wrap gap-4 mb-8">
         <button className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl">
           <div className="flex items-center gap-2">

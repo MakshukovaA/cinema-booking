@@ -3,12 +3,11 @@ import SeatComponent from './Seat';
 import type { Seat } from '../types/booking';
 
 interface SeatMapProps {
-  seats: Seat[]; // Массив всех мест в зале
-  onSeatClick: (seatId: string) => void; // Функция для обработки клика на место
+  seats: Seat[];
+  onSeatClick: (seatId: string) => void;
 }
 
 const SeatMap: React.FC<SeatMapProps> = ({ seats, onSeatClick }) => {
-  // Группируем места по рядам для удобного отображения
   const seatsByRow = seats.reduce((acc, seat) => {
     if (!acc[seat.row]) {
       acc[seat.row] = [];
@@ -17,7 +16,6 @@ const SeatMap: React.FC<SeatMapProps> = ({ seats, onSeatClick }) => {
     return acc;
   }, {} as Record<string, Seat[]>);
 
-  // Получаем отсортированные ряды (например, A, B, C...)
   const sortedRows = Object.keys(seatsByRow).sort();
 
   return (
@@ -26,7 +24,6 @@ const SeatMap: React.FC<SeatMapProps> = ({ seats, onSeatClick }) => {
         <div className="text-center text-white text-lg font-semibold mb-4">Экран</div>
         {sortedRows.map(row => (
           <div key={row} className="flex justify-center mb-1">
-            {/* Отображаем ряд */}
             <span className="text-gray-400 w-8 flex items-center justify-center mr-2 text-sm">{row}</span>
             {seatsByRow[row].map(seat => (
               <SeatComponent

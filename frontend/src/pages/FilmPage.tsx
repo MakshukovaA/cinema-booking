@@ -4,7 +4,7 @@ import FilmDetails from '../components/FilmDetails';
 import SessionList from '../components/SessionList';
 import type { Film } from '../types/film';
 import type { Session } from '../types/session';
-import { fetchFilmById, fetchSessionsForFilm, fetchFilms } from '../data/mockData'; // Добавили fetchFilms
+import { fetchFilmById, fetchSessionsForFilm, fetchFilms } from '../data/mockData';
 
 const FilmPage: React.FC = () => {
   const { filmId } = useParams<{ filmId: string }>();
@@ -12,7 +12,7 @@ const FilmPage: React.FC = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [availableFilmIds, setAvailableFilmIds] = useState<string[]>([]); // Добавили состояние для ID
+  const [availableFilmIds, setAvailableFilmIds] = useState<string[]>([]); 
 
   useEffect(() => {
     const fetchFilmAndSessions = async () => {
@@ -24,9 +24,8 @@ const FilmPage: React.FC = () => {
           throw new Error('ID фильма не указан.');
         }
 
-        // Получаем все фильмы для отладки
         const allFilms = await fetchFilms();
-        const filmIds = allFilms.map((f: Film) => f.id); // Явно указываем тип
+        const filmIds = allFilms.map((f: Film) => f.id);
         setAvailableFilmIds(filmIds);
 
         console.log("🎬 FilmPage: filmId =", filmId);

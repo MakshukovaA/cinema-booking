@@ -1,4 +1,3 @@
-// TestImageComponent.tsx
 import React from 'react';
 
 const TestImageComponent: React.FC = () => {
@@ -51,7 +50,6 @@ const TestImageComponent: React.FC = () => {
                 console.log('Путь:', img.path);
                 console.log('Полный URL:', new URL(img.path, window.location.origin).href);
                 
-                // Проверка доступности
                 fetch(img.path)
                   .then(response => {
                     console.log('Статус:', response.status);

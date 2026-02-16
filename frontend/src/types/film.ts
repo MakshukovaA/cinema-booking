@@ -1,4 +1,3 @@
-// cinema-booking-frontend/src/types/film.ts
 export interface Film {
   id: string;
   title: string;
