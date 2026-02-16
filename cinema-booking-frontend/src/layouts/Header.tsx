@@ -1,18 +1,24 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
   return (
-    <header className="bg-blue-600 text-white p-4 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold">🎬 Кинотеатр</h1>
-        <nav>
-          <ul className="flex space-x-4">
-            <li><a href="/" className="hover:text-blue-200">Главная</a></li>
-            <li><a href="#" className="hover:text-blue-200">Фильмы</a></li>
-            <li><a href="#" className="hover:text-blue-200">Бронирование</a></li>
-          </ul>
-        </nav>
-      </div>
+    <header className="bg-blue-600 text-white shadow-lg">
+      <nav className="container mx-auto px-4 py-4">
+        <div className="flex justify-between items-center">
+          <Link to="/" className="text-2xl font-bold hover:text-blue-200">
+            🎬 Кинотеатр Онлайн
+          </Link>
+          <div className="space-x-6">
+            <Link to="/" className="hover:text-blue-200 font-medium">
+              Главная
+            </Link>
+            <Link to="/film/interstellar" className="hover:text-blue-200 font-medium">
+              Фильмы
+            </Link>
+          </div>
+        </div>
+      </nav>
     </header>
   );
 };

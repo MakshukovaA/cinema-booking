@@ -4,34 +4,7 @@ import FilmDetails from '../components/FilmDetails';
 import SessionList from '../components/SessionList';
 import type { Film } from '../types/film';
 import type { Session } from '../types/session';
-
-const dummyFilmData: Film = {
-  id: '1',
-  title: 'Интерстеллар',
-  posterUrl: 'Interstellar_2014.jpg',
-  backgroundImage: 'interstellar-bg.jpg',
-  description: 'Фильм рассказывает о путешествиях и выживании человечества в космосе...',
-  duration: 169,
-  genre: 'Научная фантастика, Драма, Приключения',
-  year: 2014,
-  rating: 8.6,
-  director: 'Кристофер Нолан',
-  cast: 'Мэттью МакКонахи, Энн Хэтэуэй, Джессика Честейн',
-  country: 'США, Великобритания, Канада',
-  gallery: [
-    'interstellar-1.jpg',
-    'interstellar-2.jpg',
-    'interstellar-3.jpg',
-    'interstellar-4.jpg'
-  ]
-};
-
-const dummySessionData: Session[] = [
-  { id: 's101', filmId: '1', startTime: '2024-08-15T12:00:00', hall: 'Зал 1', availableSeats: 10, totalSeats: 50, bookedSeats: [] },
-  { id: 's102', filmId: '1', startTime: '2024-08-15T15:30:00', hall: 'Зал 3', availableSeats: 5, totalSeats: 30, bookedSeats: [] },
-  { id: 's103', filmId: '1', startTime: '2024-08-15T19:00:00', hall: 'Зал 1', availableSeats: 0, totalSeats: 50, bookedSeats: [] },
-  { id: 's104', filmId: '1', startTime: '2024-08-15T22:45:00', hall: 'Зал 2', availableSeats: 25, totalSeats: 40, bookedSeats: [] },
-];
+import { fetchFilmById, fetchSessionsForFilm, fetchFilms } from '../data/mockData'; // Добавили fetchFilms
 
 const FilmPage: React.FC = () => {
   const { filmId } = useParams<{ filmId: string }>();
@@ -39,6 +12,7 @@ const FilmPage: React.FC = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [availableFilmIds, setAvailableFilmIds] = useState<string[]>([]); // Добавили состояние для ID
 
   useEffect(() => {
     const fetchFilmAndSessions = async () => {
@@ -50,46 +24,20 @@ const FilmPage: React.FC = () => {
           throw new Error('ID фильма не указан.');
         }
 
-        await new Promise(resolve => setTimeout(resolve, 500));
-        let fetchedFilm: Film;
-        switch (filmId) {
-          case '1':
-            fetchedFilm = dummyFilmData;
-            break;
-          case '2':
-            fetchedFilm = {
-              ...dummyFilmData,
-              id: '2',
-              title: 'Начало',
-              posterUrl: 'inception.jpg',
-              backgroundImage: 'inception-bg.jpg',
-              description: 'Кобб — талантливый вор, лучший из лучших в опасном искусстве извлечения...',
-              duration: 148,
-              rating: 8.8,
-              director: 'Кристофер Нолан',
-              gallery: ['inception-1.jpg', 'inception-2.jpg']
-            };
-            break;
-          case '3':
-            fetchedFilm = {
-              ...dummyFilmData,
-              id: '3',
-              title: 'Дюна: Часть вторая',
-              posterUrl: 'dune-2.jpg',
-              backgroundImage: 'dune-2-bg.jpg',
-              description: 'Продолжение эпической саги о Пол Атрейдесе...',
-              duration: 166,
-              rating: 8.7,
-              director: 'Дени Вильнёв',
-              cast: 'Тимоти Шаламе, Зендея, Ребекка Фергюсон',
-              gallery: ['dune-2-1.jpg', 'dune-2-2.jpg']
-            };
-            break;
-          default:
-            throw new Error('Фильм не найден.');
-        }
+        // Получаем все фильмы для отладки
+        const allFilms = await fetchFilms();
+        const filmIds = allFilms.map((f: Film) => f.id); // Явно указываем тип
+        setAvailableFilmIds(filmIds);
+
+        console.log("🎬 FilmPage: filmId =", filmId);
+        console.log("📋 Available film IDs:", filmIds);
+
+        const fetchedFilm = await fetchFilmById(filmId);
+        const fetchedSessions = await fetchSessionsForFilm(filmId);
         
-        const fetchedSessions = dummySessionData.filter(s => s.filmId === filmId);
+        if (!fetchedFilm) {
+          throw new Error(`Фильм с ID "${filmId}" не найден. Доступные ID: ${filmIds.join(', ')}`);
+        }
         
         setFilm(fetchedFilm);
         setSessions(fetchedSessions);
@@ -168,11 +116,9 @@ const FilmPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Фильм */}
       <div className="container mx-auto px-4 py-8">
         <FilmDetails film={film} />
-        
-        {/* Сеансы */}
+
         <div className="mt-12">
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-8">

@@ -5,16 +5,11 @@ import SeatMap from '../components/SeatMap';
 import SeatLegend from '../components/SeatLegend';
 import BookingSummary from '../components/BookingSummary';
 import BookingForm from '../components/BookingForm';
-
-// Импортируем типы
 import type { Seat, HallLayout, BookingInfo } from '../types/booking';
 import type { Film } from '../types/film';
 import type { Session } from '../types/session';
-
-// Импортируем функции для получения данных (убедитесь, что пути верные)
 import { fetchSessionById, fetchFilmById } from '../data/mockData';
 
-// Цены (можно получать из API/сессии, но для примера оставим константами)
 const PRICE_CATEGORY_1_COST = 300;
 const PRICE_CATEGORY_2_COST = 400;
 

@@ -4,8 +4,8 @@ export interface Session {
   startTime: string;
   hall: string;
   availableSeats: number;
-  priceCategory1?: number;
-  priceCategory2?: number; 
+  priceCategory1: number;
+  priceCategory2: number; 
   totalSeats: number;
   bookedSeats: string[];  
 }
