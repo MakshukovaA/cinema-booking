@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from backend.apps.halls.models import Hall
+from apps.halls.models import Hall
 from apps.halls.models import Seat
 from apps.movies.models import Movie
 from apps.sessions.models import Session

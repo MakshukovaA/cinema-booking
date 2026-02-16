@@ -5,9 +5,9 @@ from rest_framework.views import APIView
 from django.db.models import Count, Sum, Avg, Q
 from django.db.models.functions import TruncDate, ExtractHour, ExtractWeekDay
 from datetime import datetime, timedelta
-from backend.apps.bookings.models import Booking
-from backend.apps.movies.models import Movie
-from backend.apps.halls.models import Hall
+from apps.bookings.models import Booking
+from apps.movies.models import Movie
+from apps.halls.models import Hall
 from .permissions import IsAdminUser
 
 
@@ -128,7 +128,7 @@ class HallStatsView(APIView):
 
 
 class BookingManagementViewSet(viewsets.ModelViewSet):
-    from backend.apps.bookings.serializers import BookingSerializer
+    from apps.bookings.serializers import BookingSerializer
 
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
@@ -137,7 +137,6 @@ class BookingManagementViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
 
-        # Используем другое имя переменной, чтобы не затенять импорт
         booking_status = self.request.query_params.get('status')
         if booking_status:
             queryset = queryset.filter(status=booking_status)
