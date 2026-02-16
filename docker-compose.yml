@@ -1,39 +1,72 @@
+version: '3.8'
+
 services:
   db:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: cinema_db
     environment:
-      POSTGRES_USER: cinema_user
-      POSTGRES_PASSWORD: strongpassword
-      POSTGRES_DB: cinema_booking
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - app-network
+      - cinema-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: cinema_backend
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
     environment:
-      DJANGO_SECRET_KEY: askv@=d55rxv79l29^g-j6+n7v8ky(3kdgusfcdf^s0-@eb)lq
-      DJANGO_DEBUG: "1"
-      DATABASE_URL: postgresql://cinema_user:strongpassword@db:5432/cinema_booking
+      POSTGRES_HOST: db
     volumes:
-      - .:/app
+      - ./backend:/app
+      - media_volume:/app/media
     working_dir: /app
     ports:
       - "8000:8000"
-    command: sh -c "python wait_for_db.py && python manage.py migrate --noinput && gunicorn cinemaBooking.wsgi:application --bind 0.0.0.0:8000"
+    command: >
+      sh -c "python wait_for_db.py &&
+             python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py createsuperuser --noinput --username ${DJANGO_SUPERUSER_USERNAME} --email ${DJANGO_SUPERUSER_EMAIL} || true &&
+             python manage.py runserver 0.0.0.0:8000"
     networks:
-      - app-network
+      - cinema-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cinema_frontend
+    depends_on:
+      - backend
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL}
+      REACT_APP_WS_URL: ${REACT_APP_WS_URL}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - cinema-network
 
 volumes:
   postgres_data:
+  media_volume:
 
 networks:
-  app-network:
+  cinema-network:
     driver: bridge
