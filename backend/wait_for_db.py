@@ -1,4 +1,3 @@
-# backend/wait_for_db.py
 import os
 import sys
 import time
@@ -14,7 +13,7 @@ def wait_for_db():
         'dbname': os.environ.get('POSTGRES_DB', 'cinema_booking'),
         'user': os.environ.get('POSTGRES_USER', 'cinema_user'),
         'password': os.environ.get('POSTGRES_PASSWORD', 'strongpassword'),
-        'host': os.environ.get('POSTGRES_HOST', 'db'),
+        'host': os.environ.get('POSTGRES_HOST', 'localhost'),
         'port': os.environ.get('POSTGRES_PORT', '5432')
     }
     
