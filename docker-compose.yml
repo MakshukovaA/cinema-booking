@@ -3,17 +3,18 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine
-    container_name: cinema_localhost
+    container_name: cinema_db  # ← исправлено
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-cinema_booking}
+      POSTGRES_USER: ${POSTGRES_USER:-cinema_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strongpassword}
+      POSTGRES_HOST_AUTH_METHOD: trust  # для локального использования
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - cinema-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cinema_user}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,17 +31,18 @@ services:
       - .env
     environment:
       POSTGRES_HOST: db
+      DATABASE_URL: postgres://${POSTGRES_USER:-cinema_user}:${POSTGRES_PASSWORD:-strongpassword}@db:5432/${POSTGRES_DB:-cinema_booking}
+    ports:
+      - "8000:8000"  # ← только один раз!
     volumes:
       - ./backend:/app
       - media_volume:/app/media
     working_dir: /app
-    ports:
-      - "8000:8000"
-    command: >
+    command: >  # ← только один command
       sh -c "python wait_for_db.py &&
              python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             python manage.py createsuperuser --noinput --username ${DJANGO_SUPERUSER_USERNAME} --email ${DJANGO_SUPERUSER_USERNAME} || true &&
+             python manage.py createsuperuser --noinput --username ${DJANGO_SUPERUSER_USERNAME} --email ${DJANGO_SUPERUSER_EMAIL} || true &&
              python manage.py runserver 0.0.0.0:8000"
     networks:
       - cinema-network
@@ -53,8 +55,8 @@ services:
     depends_on:
       - backend
     environment:
-      REACT_APP_API_URL: ${REACT_APP_API_URL}
-      REACT_APP_WS_URL: ${REACT_APP_WS_URL}
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000/api}
+      REACT_APP_WS_URL: ${REACT_APP_WS_URL:-ws://localhost:8000}
     ports:
       - "3000:3000"
     volumes:

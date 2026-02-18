@@ -1,22 +1,23 @@
 import React from 'react';
 import type { Film } from '../types/film';
+import { getFallbackImage } from '../utils/imageUtils';
 
 interface FilmDetailsProps {
   film: Film;
 }
 
 const FilmDetails: React.FC<FilmDetailsProps> = ({ film }) => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, type: 'poster' | 'background' | 'gallery', index?: number) => {
+    const target = e.currentTarget;
+    target.src = getFallbackImage(type, film.id, index);
+    target.onerror = null;
+  };
+
+  // Функция для форматирования времени
   const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return `${hours}ч ${mins}мин`;
-  };
-
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    const target = e.currentTarget;
-    console.error(`Ошибка загрузки изображения: ${target.src}`);
-    target.src = '/img/placeholder.jpg';
-    target.onerror = null;
+    return hours > 0 ? `${hours}ч ${mins}мин` : `${mins}мин`;
   };
 
   const hasBackgroundImage = film.backgroundImage && film.backgroundImage !== '';
@@ -41,7 +42,7 @@ const FilmDetails: React.FC<FilmDetailsProps> = ({ film }) => {
                   src={film.posterUrl} 
                   alt={film.title}
                   className="w-64 h-96 object-cover rounded-xl shadow-2xl"
-                  onError={handleImageError}
+                  onError={(e) => handleImageError(e, 'poster')}
                   onLoad={() => console.log(`✅ Постер загружен: ${film.title}`)}
                 />
               </div>
@@ -126,7 +127,7 @@ const FilmDetails: React.FC<FilmDetailsProps> = ({ film }) => {
                   src={image}
                   alt={`Кадр из фильма "${film.title}" ${index + 1}`}
                   className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
-                  onError={handleImageError}
+                  onError={(e) => handleImageError(e, 'gallery', index)}
                   onLoad={() => console.log(`✅ Галерея ${index + 1} загружена: ${film.title}`)}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">

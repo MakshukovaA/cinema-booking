@@ -1,50 +1,50 @@
 import type { Film } from '../types/film';
 import type { Session } from '../types/session';
+import { getFilmImages, getFallbackImage } from '../utils/imageUtils';
+
+const createImageUrl = (url: string, fallbackType: 'poster' | 'background' | 'gallery', filmId?: string, index?: number) => {
+  return {
+    url,
+    fallback: getFallbackImage(fallbackType, filmId, index)
+  };
+};
 
 export const mockFilms: Film[] = [
-   {
+  {
     id: 'interstellar',
     title: 'Интерстеллар',
-    posterUrl: '/img/Interstellar_2014.jpg',
-    backgroundImage: '/img/Interstellar_2014.jpg', 
+    posterUrl: getFilmImages('interstellar').POSTER,
+    backgroundImage: getFilmImages('interstellar').BACKGROUND,
     description: 'Фильм исследует теорию кротовых нор и гравитационных колодцев, а также их возможное влияние на человечество. Сюжет фокусируется на группе исследователей, которые путешествуют через червоточину, чтобы найти новый пригодный для жизни дом для человечества.',
-    duration: 169, 
+    duration: 169,
     genre: 'Научная фантастика',
     year: 2014,
     rating: 8.6,
     director: 'Кристофер Нолан',
     cast: 'Мэттью МакКонахи, Энн Хэтэуэй, Джессика Честейн, Майкл Кейн',
     country: 'США, Великобритания, Канада',
-    gallery: [
-      '/img/Interstellar_2014.jpg',
-      '/img/Interstellar_2014.jpg',
-      '/img/Interstellar_2014.jpg'
-    ]
+    gallery: getFilmImages('interstellar').GALLERY
   },
   {
     id: 'inception',
     title: 'Начало',
-    posterUrl: '/img/Poster_начало.jpg',
-    backgroundImage: '/img/Poster_начало.jpg',
+    posterUrl: getFilmImages('inception').POSTER,
+    backgroundImage: getFilmImages('inception').BACKGROUND,
     description: 'Вор, который крадет ценную информацию, проникая в подсознание своих жертв, получает обратную задачу — внедрить идею, а не украсть её. Команда специалистов пытается осуществить невозможное — кражу идеи из подсознания.',
     duration: 148,
     genre: 'Научная фантастика, Триллер',
     year: 2010,
     rating: 8.8,
     director: 'Кристофер Нолан',
-    cast: 'Леонардо ДиКаприо, Джозеф Гордон-Левитт, Эллен Пейдж, Том Харди',
+    cast: 'Леонардо ДиКаприo, Джозеф Гордон-Левитт, Эллен Пейдж, Том Харди',
     country: 'США, Великобритания',
-    gallery: [
-      '/img/Poster_начало.jpg',
-      '/img/Poster_начало.jpg',
-      '/img/Poster_начало.jpg'
-    ]
+    gallery: getFilmImages('inception').GALLERY
   },
   {
     id: 'dune',
     title: 'Дюна',
-    posterUrl: '/img/Дюна_постер.jpg',
-    backgroundImage: '/img/Дюна_постер.jpg',
+    posterUrl: getFilmImages('dune').POSTER,
+    backgroundImage: getFilmImages('dune').BACKGROUND,
     description: 'Действие разворачивается в далеком будущем на пустынной планете Арракис, единственном источнике ценнейшего вещества во вселенной — меланжа. Молодой Пол Атрейдес должен отправиться на Арракис, чтобы защитить свою семью и народ.',
     duration: 155,
     genre: 'Научная фантастика, Приключения',
@@ -53,17 +53,13 @@ export const mockFilms: Film[] = [
     director: 'Дени Вильнёв',
     cast: 'Тимоти Шаламе, Ребекка Фергюсон, Оскар Айзек, Зендея',
     country: 'США, Канада',
-    gallery: [
-      '/img/Дюна_постер.jpg',
-      '/img/дюна.jpg',
-      '/img/Дюна_постер.jpg'
-    ]
+    gallery: getFilmImages('dune').GALLERY
   },
   {
     id: 'dark-knight',
     title: 'Темный рыцарь',
-    posterUrl: '/img/Тёмный_рыцарь_постер.jpg',
-    backgroundImage: '/img/Тёмный_рыцарь_постер.jpg',
+    posterUrl: getFilmImages('dark-knight').POSTER,
+    backgroundImage: getFilmImages('dark-knight').BACKGROUND,
     description: 'Когда Бэтмен поднимает ставки в войне с организованной преступностью, Джокер, безумный криминальный гений, развязывает анархию и заставляет героя пойти на все, чтобы поймать его. Фильм исследует темы морали, справедливости и хаоса.',
     duration: 152,
     genre: 'Боевик, Драма, Криминал',
@@ -72,13 +68,10 @@ export const mockFilms: Film[] = [
     director: 'Кристофер Нолан',
     cast: 'Кристиан Бэйл, Хит Леджер, Аарон Экхарт, Мэгги Джилленхол',
     country: 'США, Великобритания',
-    gallery: [
-      '/img/Тёмный_рыцарь_постер.jpg',
-      '/img/Тёмный_рыцарь_постер.jpg',
-      '/img/Тёмный_рыцарь_постер.jpg'
-    ]
+    gallery: getFilmImages('dark-knight').GALLERY
   },
 ];
+
 
 export const mockSessions: Session[] = [
   { id: 'session-interstellar-1', filmId: 'interstellar', startTime: '2024-03-15T19:00:00', hall: 'Зал 1', availableSeats: 50, totalSeats: 100, priceCategory1: 300, priceCategory2: 400, bookedSeats: [] }, 

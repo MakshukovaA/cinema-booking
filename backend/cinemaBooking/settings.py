@@ -80,7 +80,7 @@ DATABASES = {
         'NAME': env('POSTGRES_DB', default='cinema_booking'),
         'USER': env('POSTGRES_USER', default='cinema_user'),
         'PASSWORD': env('POSTGRES_PASSWORD', default='strongpassword'),
-        'HOST': env('POSTGRES_HOST', default='localhost'),
+        'HOST': env('POSTGRES_HOST', default='db'),
         'PORT': env('POSTGRES_PORT', default='5432'),
     }
 }
