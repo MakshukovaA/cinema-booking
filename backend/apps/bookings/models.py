@@ -16,33 +16,58 @@ class Booking(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P')
     created_at = models.DateTimeField(auto_now_add=True)
-    seats = models.ManyToManyField('halls.Seat', through='BookingSeat', related_name='bookings')
+    seats = models.ManyToManyField('seats.Seat', through='BookingSeat', related_name='bookings')
 
     def __str__(self):
         return f'Booking {self.id} by {self.user} for {self.session}'
 
     def recalculate_total(self):
+        # Используем связанные записи BookingSeat
         total = sum((bs.price for bs in self.booking_seats.all()), Decimal('0.00'))
         self.total_price = total
         self.save(update_fields=['total_price'])
+        return total
 
     def add_seat(self, seat, price):
+        # Импортируем BookingSeat локально, чтобы избежать циклической зависимости
+        from .models import BookingSeat
+        
         if hasattr(self.session, 'hall') and seat.hall != self.session.hall:
             raise ValueError('Seat belongs to a different hall than the session.')
+        
+        # Проверяем, существует ли уже запись для этого места
         if BookingSeat.objects.filter(booking=self, seat=seat).exists():
             raise ValueError('Seat уже добавлено в это бронирование.')
 
+        # Создаем запись BookingSeat
         BookingSeat.objects.create(booking=self, seat=seat, price=price)
+        
+        # Пересчитываем общую сумму
         self.recalculate_total()
+        return True
+
+    def get_seats_info(self):
+        """Получает информацию о местах в бронировании"""
+        seats_info = []
+        for booking_seat in self.booking_seats.select_related('seat').all():
+            seats_info.append({
+                'row': booking_seat.seat.row,
+                'number': booking_seat.seat.number,
+                'seat_type': booking_seat.seat.seat_type,
+                'price': booking_seat.price
+            })
+        return seats_info
 
 
 class BookingSeat(models.Model):
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='booking_seats')
-    seat = models.ForeignKey('halls.Seat', on_delete=models.CASCADE, related_name='booking_seats')
+    seat = models.ForeignKey('seats.Seat', on_delete=models.CASCADE, related_name='booking_seats')
     price = models.DecimalField(max_digits=6, decimal_places=2)
 
     class Meta:
         unique_together = ('booking', 'seat')
+        verbose_name = 'Забронированное место'
+        verbose_name_plural = 'Забронированные места'
 
     def __str__(self):
         return f'BookingSeat: Booking {self.booking.id} - Seat {self.seat}'

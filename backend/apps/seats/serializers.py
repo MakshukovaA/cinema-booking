@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.halls.models import Seat
+from .models import Seat
 
 class SeatSerializer(serializers.ModelSerializer):
     hall_name = serializers.CharField(source='hall.name', read_only=True)

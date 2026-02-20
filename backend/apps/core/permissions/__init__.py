@@ -1,3 +1,17 @@
-from .permissions import IsAdminGroup, IsGuestReadOnly, AdminOrGuestReadOnly
+from .permissions import (
+    IsAdminGroup, 
+    IsGuestReadOnly, 
+    AdminOrGuestReadOnly,
+    IsOwnerOrAdmin,
+    IsAuthenticatedOrReadOnly,
+    IsOwner
+)
 
-__all__ = ['IsAdminGroup', 'IsGuestReadOnly', 'AdminOrGuestReadOnly']
+__all__ = [
+    'IsAdminGroup', 
+    'IsGuestReadOnly', 
+    'AdminOrGuestReadOnly',
+    'IsOwnerOrAdmin',
+    'IsAuthenticatedOrReadOnly',
+    'IsOwner'
+]

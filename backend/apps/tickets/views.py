@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissionsOrAnonReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from apps.halls.models import Hall
-from apps.halls.models import Seat
+from apps.seats.models import Seat
 from apps.movies.models import Movie
 from apps.sessions.models import Session
 from apps.pricing.models import Pricing

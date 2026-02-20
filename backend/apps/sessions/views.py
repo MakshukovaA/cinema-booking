@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from apps.sessions.models import Session
-from apps.halls.models import Seat
+from apps.seats.models import Seat
 from apps.seats.serializers import SeatSerializer
 from apps.bookings.models import BookingSeat
 from apps.sessions.serializers import SessionSerializer

@@ -1,5 +1,5 @@
 from rest_framework import generics
-from apps.halls.models import Seat
+from .models import Seat
 from .serializers import SeatSerializer
 
 class SeatListCreateView(generics.ListCreateAPIView):
