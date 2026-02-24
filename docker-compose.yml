@@ -3,12 +3,12 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine
-    container_name: cinema_db  # ← исправлено
+    container_name: cinema_db
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-cinema_booking}
       POSTGRES_USER: ${POSTGRES_USER:-cinema_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strongpassword}
-      POSTGRES_HOST_AUTH_METHOD: trust  # для локального использования
+      POSTGRES_HOST_AUTH_METHOD: trust 
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -33,12 +33,12 @@ services:
       POSTGRES_HOST: db
       DATABASE_URL: postgres://${POSTGRES_USER:-cinema_user}:${POSTGRES_PASSWORD:-strongpassword}@db:5432/${POSTGRES_DB:-cinema_booking}
     ports:
-      - "8000:8000"  # ← только один раз!
+      - "8000:8000"  
     volumes:
-      - ./backend:/app
-      - media_volume:/app/media
-    working_dir: /app
-    command: >  # ← только один command
+      - ./backend:/backend
+      - media_volume:/backend/media
+    working_dir: /backend
+    command: >  
       sh -c "python wait_for_db.py &&
              python manage.py migrate &&
              python manage.py collectstatic --noinput &&
