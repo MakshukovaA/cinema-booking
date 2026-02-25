@@ -5,17 +5,15 @@ import dj_database_url
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = BASE_DIR.parent
 
 env = environ.Env()
-
-env_file = BASE_DIR / '.env'
+env_file = PROJECT_ROOT / '.env'
 if env_file.exists():
-    environ.Env.read_env(env_file)
+    env.read_env(str(env_file))
 
-SECRET_KEY = env('DJANGO_SECRET_KEY', default='askv@=d55rxv79l29^g-j6+n7v8ky(3kdgusfcdf^s0-@eb)lq')
-
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env.bool('DEBUG', default=False)
-
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost', '127.0.0.1', 'backend'])
 
 INSTALLED_APPS = [
@@ -25,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     
     'rest_framework',
     'rest_framework_simplejwt',
@@ -202,7 +201,7 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000 
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     

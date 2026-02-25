@@ -2,10 +2,6 @@
 
 Система онлайн-бронирования билетов в кинотеатр с React фронтендом и Django бэкендом.
 
-## 🚀 Быстрый старт
-
-### Предварительные требования
-
 - [Docker](https://docs.docker.com/get-docker/) и [Docker Compose](https://docs.docker.com/compose/install/)
 - [Node.js 18+](https://nodejs.org/) (для локальной разработки)
 - [Python 3.11+](https://www.python.org/) (для локальной разработки)

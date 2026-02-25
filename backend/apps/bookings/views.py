@@ -44,29 +44,23 @@ class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
-        """Обновление бронирования с проверкой мест"""
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        
-        # Проверяем, что пользователь может редактировать бронирование
+
         self.check_object_permissions(request, instance)
         
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         
-        # Получаем новые места из запроса
         new_seat_ids = request.data.get('seat_ids', [])
         if new_seat_ids:
-            # Удаляем старые места
             BookingSeat.objects.filter(booking=instance).delete()
             
-            # Добавляем новые места
             total_price = Decimal('0.00')
             for seat_id in new_seat_ids:
                 seat = get_object_or_404(Seat, pk=seat_id)
                 price = self._calculate_seat_price(seat, instance.session)
                 
-                # Проверяем доступность места
                 if self._is_seat_available(seat, instance.session):
                     BookingSeat.objects.create(
                         booking=instance,
@@ -124,10 +118,7 @@ class BookingViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Получаем сеанс
-        session = get_object_or_404(Session, pk=session_id)
-        
-        # Проверяем доступность мест
+        session = get_object_or_404
         unavailable_seats = self._check_seat_availability(seat_ids, session)
         if unavailable_seats:
             return Response(
@@ -137,33 +128,26 @@ class BookingViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        # Создаем бронирование
         booking = Booking.objects.create(
             user=request.user,
             session=session,
-            status='P'  # По умолчанию Pending
+            status='P' 
         )
-
-        # Добавляем места
         total_price = Decimal('0.00')
         for seat_id in seat_ids:
             seat = Seat.objects.get(id=seat_id)
             price = self._calculate_seat_price(seat, session)
             
-            # Используем метод модели Booking для добавления места
             try:
                 booking.add_seat(seat, price)
                 total_price += price
             except ValueError as e:
-                # Откатываем транзакцию при ошибке
                 transaction.set_rollback(True)
                 return Response(
                     {'detail': str(e)},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-        # Обновляем общую цену
         booking.total_price = total_price
         booking.save(update_fields=['total_price'])
 
@@ -184,7 +168,6 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking.status = 'X'
         booking.save(update_fields=['status'])
         
-        # Освобождаем места (удаляем записи BookingSeat)
         BookingSeat.objects.filter(booking=booking).delete()
         
         serializer = BookingSerializer(booking)
@@ -214,7 +197,6 @@ class BookingViewSet(viewsets.ModelViewSet):
         for seat_id in seat_ids:
             seat = get_object_or_404(Seat, pk=seat_id)
             
-            # Проверяем, забронировано ли место на этот сеанс
             if BookingSeat.objects.filter(
                 seat=seat,
                 booking__session=session,
@@ -228,20 +210,14 @@ class BookingViewSet(viewsets.ModelViewSet):
         return unavailable_seats
 
     def _calculate_seat_price(self, seat, session):
-        """Рассчитывает цену места"""
-        # Проверяем, есть ли специальная цена для этого типа места
         if hasattr(seat, 'seat_type'):
             if seat.seat_type == 'VIP' or getattr(seat, 'is_vip', False):
-                # VIP места дороже
                 return session.price * Decimal('1.5')
             elif seat.seat_type == 'NORMAL':
                 return session.price
-        
-        # Возвращаем стандартную цену сеанса
         return session.price
 
     def _is_seat_available(self, seat, session):
-        """Проверяет доступно ли место"""
         return not BookingSeat.objects.filter(
             seat=seat,
             booking__session=session,
@@ -250,7 +226,6 @@ class BookingViewSet(viewsets.ModelViewSet):
 
 
 class UserBookingsView(APIView):
-    """Просмотр бронирований текущего пользователя"""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -260,7 +235,6 @@ class UserBookingsView(APIView):
 
 
 class BookingSeatViewSet(viewsets.ModelViewSet):
-    """API для работы с забронированными местами"""
     queryset = BookingSeat.objects.all()
     serializer_class = BookingSeatSerializer
     permission_classes = [IsAdminGroup]

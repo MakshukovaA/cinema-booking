@@ -58,12 +58,10 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'total_price', 'status']
     
     def validate(self, data):
-        # Проверяем, что сеанс существует
         session = data.get('session')
         if not session:
             raise serializers.ValidationError({'session': 'Session is required.'})
         
-        # Проверяем, что есть места
         seat_ids = data.get('seat_ids', [])
         if not seat_ids:
             raise serializers.ValidationError({'seat_ids': 'At least one seat is required.'})
@@ -71,7 +69,6 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         return data
     
     def create(self, validated_data):
-        # Этот метод вызывается из view, поэтому здесь только валидация
         raise NotImplementedError("Booking should be created in the view, not in serializer.")
 
 
