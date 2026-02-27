@@ -33,12 +33,14 @@ INSTALLED_APPS = [
     'apps.api',
     'apps.halls',
     'apps.seats',
-    'apps.bookings',
-    'apps.tickets',
+    #'apps.bookings',
+    #'apps.tickets',
     'apps.users',
     'apps.movies',
     'apps.sessions',
     'apps.pricing',
+    'apps.bookings.apps.BookingsConfig',
+    'apps.tickets.apps.TicketsConfig',
 ]
 
 MIDDLEWARE = [

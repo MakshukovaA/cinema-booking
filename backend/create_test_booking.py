@@ -11,7 +11,6 @@ django.setup()
 print('🎬 ======= СОЗДАНИЕ ТЕСТОВОГО БРОНИРОВАНИЯ =======')
 
 try:
-    # Импортируем модели
     from apps.users.models import User
     from apps.movies.models import Movie
     from apps.halls.models import Hall
@@ -20,8 +19,7 @@ try:
     from apps.bookings.models import Booking
     from apps.tickets.models import Ticket
     import uuid
-    
-    # 1. Пользователь
+
     print('\\n👤 СОЗДАЕМ ПОЛЬЗОВАТЕЛЯ...')
     user, created = User.objects.get_or_create(
         username='cinema_test_user',
@@ -37,7 +35,6 @@ try:
     else:
         print('✅ Используем существующего: ' + user.username)
     
-    # 2. Проверяем сеансы
     print('\\n🔍 ПРОВЕРЯЕМ СЕАНСЫ...')
     session = Session.objects.first()
     if not session:
@@ -52,7 +49,6 @@ try:
     print('   Зал: ' + hall_name)
     print('   Время: ' + str(session.start_time))
     
-    # 3. Проверяем места
     print('\\n💺 ПРОВЕРЯЕМ МЕСТА...')
     if session.hall:
         seats = Seat.objects.filter(hall=session.hall)[:3]
@@ -68,7 +64,6 @@ try:
     for seat in seats:
         print('   - Ряд ' + str(seat.row) + ', место ' + str(seat.number))
     
-    # 4. СОЗДАЕМ БРОНИРОВАНИЕ
     print('\\n🎫 СОЗДАЕМ БРОНИРОВАНИЕ...')
     
     price_per_ticket = 500.00
@@ -92,7 +87,6 @@ try:
     print('   Статус: ' + booking.status)
     print('   Цена: ' + str(booking.total_price) + ' ₽')
     
-    # 5. ПРОВЕРЯЕМ АВТОМАТИЧЕСКОЕ СОЗДАНИЕ БИЛЕТОВ
     print('\\n🔍 ПРОВЕРКА АВТОМАТИЧЕСКИХ БИЛЕТОВ...')
     
     import time
@@ -136,7 +130,6 @@ try:
                 )
                 print('   ✅ Создан билет: ' + ticket.code)
                 
-                # Генерируем QR
                 print('   Генерируем QR...')
                 try:
                     qr_url = ticket.generate_qr_code()
@@ -147,8 +140,6 @@ try:
                     
             except Exception as e:
                 print('   ❌ Ошибка создания билета: ' + str(e))
-    
-    # 6. ИТОГ
     print('\\n📊 ======= ИТОГ =======')
     print('🎫 Всего бронирований: ' + str(Booking.objects.count()))
     print('🎟️ Всего билетов: ' + str(Ticket.objects.count()))

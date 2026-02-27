@@ -108,7 +108,6 @@ class Ticket(models.Model):
 
     @property
     def qr_code_url(self):
-        """Возвращает URL QR-кода"""
         if self.qr_code:
             return self.qr_code.url
         return None

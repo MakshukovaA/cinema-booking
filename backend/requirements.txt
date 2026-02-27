@@ -24,9 +24,8 @@ asgiref==3.10.0
 
 # Production
 gunicorn==24.0.0
-whitenoise==6.10.0  # Для обслуживания статических файлов
+whitenoise==6.10.0  
 
-# Development (можно разделить на requirements-dev.txt)
 colorama==0.4.6
 packaging==26.0
 setuptools==80.10.2
@@ -35,8 +34,3 @@ tzdata==2025.2
 wheel==0.46.0
 
 django-extensions
-
-# Optional (для будущих функций)
-# django-filter==25.3
-# django-debug-toolbar==4.5.0
-# drf-yasg==1.21.10  # Swagger документация

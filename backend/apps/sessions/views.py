@@ -29,10 +29,10 @@ def get(request, session_id):
 class AvailableSeatsView(APIView):
     permission_classes = [IsAuthenticated]
 
-
 class SessionListCreateView(generics.ListCreateAPIView):
     queryset = Session.objects.all()
     serializer_class = SessionSerializer
+    pagination_class = None 
 
 class SessionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Session.objects.all()

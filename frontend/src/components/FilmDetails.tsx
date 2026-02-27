@@ -13,7 +13,6 @@ const FilmDetails: React.FC<FilmDetailsProps> = ({ film }) => {
     target.onerror = null;
   };
 
-  // Функция для форматирования времени
   const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;

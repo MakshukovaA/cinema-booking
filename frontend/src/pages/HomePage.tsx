@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import MovieList from '../components/MovieList';
-import type { Film } from '../types/film';
+import React, { useEffect, useState } from 'react';
+import ApiClient from '../api';
 import { fetchFilms } from '../data/mockData';
+import type { Film } from '../types/film';
+import MovieList from '../components/MovieList';
 
 const HomePage: React.FC = () => {
   const [films, setFilms] = useState<Film[]>([]);
@@ -9,21 +10,29 @@ const HomePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadFilms = async () => {
-      setIsLoading(true);
-      setError(null);
+    const api = new ApiClient();
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') ?? undefined : undefined;
 
+    const loadFromApi = async () => {
       try {
-        const data = await fetchFilms();
+        const data = await api.get<Film[]>('/movies', token);
         setFilms(data);
       } catch (err) {
-        console.error("Error loading films:", err);
-        setError('Ошибка при загрузке фильмов');
+        console.error('Error loading films from API:', err);
+        try {
+          const data = await fetchFilms();
+          setFilms(data);
+          setError('Не удалось загрузить фильмы через API. Показаны мок-данные.');
+        } catch (mockErr) {
+          console.error('Fallback also failed:', mockErr);
+          setError('Не удалось загрузить фильмы.');
+        }
       } finally {
         setIsLoading(false);
       }
     };
-    loadFilms();
+
+    loadFromApi();
   }, []);
 
   if (isLoading) {
@@ -37,7 +46,7 @@ const HomePage: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error && films.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -56,63 +65,10 @@ const HomePage: React.FC = () => {
     );
   }
 
-  if (films.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 text-gray-400 mx-auto mb-4">
-            <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <p className="text-lg text-gray-700">Фильмы пока не найдены.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              🎬 Кинотеатр Онлайн
-            </h1>
-            <p className="text-xl text-blue-100">
-              Бронируйте билеты на лучшие фильмы в удобное время
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Сейчас в прокате</h2>
-          <p className="text-gray-600">Выберите фильм для просмотра расписания</p>
-        </div>
-
         <MovieList films={films} />
-
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-blue-50 p-6 rounded-xl">
-              <div className="text-2xl mb-3">📍</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Удобное расположение</h3>
-              <p className="text-gray-600">Центр города, рядом с метро</p>
-            </div>
-            <div className="bg-purple-50 p-6 rounded-xl">
-              <div className="text-2xl mb-3">💺</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Комфортные кресла</h3>
-              <p className="text-gray-600">Ортопедические кресла премиум-класса</p>
-            </div>
-            <div className="bg-green-50 p-6 rounded-xl">
-              <div className="text-2xl mb-3">🍿</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Свежие снэки</h3>
-              <p className="text-gray-600">Попкорн, напитки и сладости</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

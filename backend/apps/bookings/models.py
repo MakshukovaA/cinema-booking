@@ -22,32 +22,22 @@ class Booking(models.Model):
         return f'Booking {self.id} by {self.user} for {self.session}'
 
     def recalculate_total(self):
-        # Используем связанные записи BookingSeat
         total = sum((bs.price for bs in self.booking_seats.all()), Decimal('0.00'))
         self.total_price = total
         self.save(update_fields=['total_price'])
         return total
 
     def add_seat(self, seat, price):
-        # Импортируем BookingSeat локально, чтобы избежать циклической зависимости
         from .models import BookingSeat
-        
         if hasattr(self.session, 'hall') and seat.hall != self.session.hall:
             raise ValueError('Seat belongs to a different hall than the session.')
-        
-        # Проверяем, существует ли уже запись для этого места
         if BookingSeat.objects.filter(booking=self, seat=seat).exists():
             raise ValueError('Seat уже добавлено в это бронирование.')
-
-        # Создаем запись BookingSeat
         BookingSeat.objects.create(booking=self, seat=seat, price=price)
-        
-        # Пересчитываем общую сумму
         self.recalculate_total()
         return True
 
     def get_seats_info(self):
-        """Получает информацию о местах в бронировании"""
         seats_info = []
         for booking_seat in self.booking_seats.select_related('seat').all():
             seats_info.append({

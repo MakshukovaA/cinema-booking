@@ -1,8 +1,9 @@
 ﻿import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import FilmPage from './pages/FilmPage';
 import BookingPage from './pages/BookingPage';
+import LoginForm from './components/LoginForm';
 import MainLayout from './layouts/MainLayout';
 
 function App() {
@@ -14,7 +15,8 @@ function App() {
           <Route path="/film/:filmId" element={<FilmPage />} />
           <Route path="/booking/:sessionId" element={<BookingPage />} />
         </Route>
-        <Route path="*" element={<div>Страница не найдена</div>} />
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );

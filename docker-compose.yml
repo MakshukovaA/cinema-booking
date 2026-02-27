@@ -39,11 +39,7 @@ services:
       - media_volume:/backend/media
     working_dir: /backend
     command: >  
-      sh -c "python wait_for_db.py &&
-             python manage.py migrate &&
-             python manage.py collectstatic --noinput &&
-             python manage.py createsuperuser --noinput --username ${DJANGO_SUPERUSER_USERNAME} --email ${DJANGO_SUPERUSER_EMAIL} || true &&
-             python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py runserver 0.0.0.0:8000"
     networks:
       - cinema-network
 

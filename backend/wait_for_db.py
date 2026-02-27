@@ -1,11 +1,9 @@
 import os
-import sys
 import time
 import psycopg2
 from psycopg2 import OperationalError
 
 def wait_for_db():
-    """Wait for PostgreSQL database to be ready."""
     max_retries = 30
     retry_interval = 2
     
@@ -37,5 +35,4 @@ def wait_for_db():
     return False
 
 if __name__ == "__main__":
-    if not wait_for_db():
-        sys.exit(1)
+    wait_for_db()

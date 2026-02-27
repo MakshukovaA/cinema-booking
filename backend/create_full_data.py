@@ -49,13 +49,12 @@ try:
         print('✅ Используем существующего пользователя:', user.username)
 
     print('\\n🎬 2. СОЗДАЕМ ФИЛЬМ...')
-    # Используем реальные поля из модели Movie
     movie, movie_created = Movie.objects.get_or_create(
         title='Интерстеллар',
         defaults={
             'description': 'Эпическая научно-фантастическая драма о космических путешествиях',
-            'duration': 169,  # минуты
-            'genre': 'SF',  # Sci-Fi из GENRE_CHOICES
+            'duration': 169,  
+            'genre': 'SF',  
             'release_date': '2014-10-26',
             'rating': 8.6
         }
@@ -95,7 +94,6 @@ try:
         
         for row in range(1, hall.rows + 1):
             for number in range(1, hall.cols + 1): 
-                # Используем правильные поля модели Seat
                 seat = Seat(
                     hall=hall,
                     row=row,
@@ -105,30 +103,20 @@ try:
                     is_available=True
                 )
                 seats_to_create.append(seat)
-        
-        # Массовое создание
         Seat.objects.bulk_create(seats_to_create)
         print('✅ Создано', len(seats_to_create), 'мест в зале')
     else:
         print('✅ В зале уже есть', existing_seats, 'мест')
-    
-    # Получаем список мест для бронирования
-    seats_for_booking = list(Seat.objects.filter(hall=hall)[:3])  # Первые 3 места
-    
-    # 5. СОЗДАЕМ СЕАНС (правильная модель)
+    seats_for_booking = list(Seat.objects.filter(hall=hall)[:3])
     print('\\n🕒 5. СОЗДАЕМ СЕАНС...')
-    
-    # Сеанс на завтра в 18:00
     tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
     start_time = tomorrow.replace(hour=18, minute=0, second=0, microsecond=0)
-    
-    # Создаем сеанс (правильно для новой модели)
     session, session_created = CinemaSession.objects.get_or_create(
         movie=movie,
         hall=hall,
         start_time=start_time,
         defaults={
-            'price': 600.00  # Только цена, без end_time, format, is_active
+            'price': 600.00 
         }
     )
     
@@ -140,26 +128,18 @@ try:
         print('   Цена билета:', session.price, '₽')
     else:
         print('✅ Используем существующий сеанс')
-    
-    # 6. СОЗДАЕМ БРОНИРОВАНИЕ
     print('\\n🎫 6. СОЗДАЕМ БРОНИРОВАНИЕ...')
-    
-    # Рассчитываем общую цену
     total_price = session.price * len(seats_for_booking)
-    
-    # Создаем уникальный код бронирования
     booking_code = 'CINEMA-' + uuid.uuid4().hex[:8].upper()
     
-    # Создаем бронирование
     booking = Booking.objects.create(
         user=user,
-        session=session,  # Теперь session определен
+        session=session,
         total_price=total_price,
         status='confirmed',
         booking_code=booking_code
     )
     
-    # Привязываем места (если есть связь)
     if hasattr(booking, 'seats'):
         booking.seats.set(seats_for_booking)
         print('✅ Места привязаны к бронированию')
@@ -169,18 +149,15 @@ try:
     print('   Статус:', booking.status)
     print('   Общая цена:', booking.total_price, '₽')
     print('   Места:', [f'Ряд {s.row}, место {s.number}' for s in seats_for_booking])
-    
-    # 7. СОЗДАЕМ БИЛЕТЫ
     print('\\n🎟️ 7. СОЗДАЕМ БИЛЕТЫ...')
     
     for i, seat in enumerate(seats_for_booking, 1):
         try:
-            # Создаем билет
             ticket_data = {
                 'booking': booking,
                 'seat': seat,
-                'session': session,  # Сеанс теперь есть
-                'price': session.price,  # Цена из сеанса
+                'session': session, 
+                'price': session.price, 
                 'code': f'TICKET-{uuid.uuid4().hex[:6].upper()}',
             }
             
@@ -188,8 +165,6 @@ try:
             print(f'   ✅ Создан билет {i}:', ticket.code)
             print(f'      Место: Ряд {seat.row}, место {seat.number}')
             print(f'      Цена: {ticket.price} ₽')
-            
-            # Пробуем сгенерировать QR-код
             if hasattr(ticket, 'generate_qr_code'):
                 try:
                     print('      Генерируем QR-код...')
@@ -203,8 +178,7 @@ try:
             
         except Exception as e:
             print(f'   ❌ Ошибка создания билета {i}:', str(e))
-    
-    # 8. ИТОГОВАЯ СТАТИСТИКА
+
     print('\\n📊 ======= ИТОГОВАЯ СТАТИСТИКА =======')
     print('👤 Пользователей:', User.objects.count())
     print('🎬 Фильмов:', Movie.objects.count())
@@ -214,7 +188,6 @@ try:
     print('🎫 Бронирований:', Booking.objects.count())
     print('🎟️ Билетов:', Ticket.objects.count())
     
-    # Проверяем QR-коды
     qr_tickets = Ticket.objects.filter(qr_code__isnull=False).count()
     print('📄 Билетов с QR-кодами:', qr_tickets)
     

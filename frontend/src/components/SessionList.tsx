@@ -1,29 +1,31 @@
 import React from 'react';
-import SessionItem from './SessionItem';
+import type { Session } from '../types/session';
 
-interface Session {
-  id: string;
-  startTime: string;
-  hall: string;
-  availableSeats: number;
-  totalSeats: number;
-}
+type Props = {
+  sessions?: Session[];
+  onSessionClick?: (session: Session) => void;
+};
 
-interface SessionListProps {
-  sessions: Session[]; 
-  filmId: string;
-}
+const SessionList: React.FC<Props> = ({ sessions, onSessionClick }) => {
+  const list = Array.isArray(sessions) ? sessions : [];
 
-const SessionList: React.FC<SessionListProps> = ({ sessions, filmId }) => {
-  if (!sessions || sessions.length === 0) {
-    return <p className="text-center text-gray-500 mt-6">Сеансы для этого фильма пока не добавлены.</p>;
+  if (list.length === 0) {
+    return <div className="text-gray-500 text-center mt-6">Сеансы не найдены</div>;
   }
 
   return (
-    <div className="mt-6 p-4 bg-gray-50 rounded-lg shadow-inner">
-      <h3 className="text-2xl font-semibold text-gray-800 mb-5">Сеансы</h3>
-      {sessions.map(session => (
-        <SessionItem key={session.id} session={session} filmId={filmId} />
+    <div className="space-y-2">
+      {list.map((s) => (
+        <div
+          key={s.id}
+          className="p-3 border rounded cursor-pointer"
+          onClick={() => onSessionClick?.(s)}
+        >
+          <div className="font-semibold">
+            {new Date(s.startTime).toLocaleString('ru-RU')}
+          </div>
+          <div className="text-sm text-gray-600">{s.hall}</div>
+        </div>
       ))}
     </div>
   );
