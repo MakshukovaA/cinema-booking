@@ -55,7 +55,7 @@ const BookingPage: React.FC = () => {
 
     const loadBookingDetails = async () => {
       try {
-        const sess: any = await api.get<any>(`/sessions/${sessionIdToUse}`, token);
+        const sess: any = await api.get<any>(`/api/sessions/${sessionIdToUse}/`, token);
         const filmObj = sess.film ?? { id: sess.film_id, title: sess.film_title };
 
         const sessionData = {
@@ -70,7 +70,7 @@ const BookingPage: React.FC = () => {
         setSelectedSession(sessionData);
         setSelectedFilm({ id: filmObj.id, title: filmObj.title } as Film);
 
-        const seatsRes: any = await api.get<any>(`/bookings/sessions/${sessionIdToUse}/available-seats/`, token);
+        const seatsRes: any = await api.get<any>(`/api/sessions/${sessionIdToUse}/available-seats/`, token);
         const seatsList = Array.isArray(seatsRes) ? seatsRes : seatsRes?.seats ?? [];
         const mapped: Seat[] = seatsList.map((s: any) => ({
           id: s.id,
@@ -131,10 +131,11 @@ const BookingPage: React.FC = () => {
       userPhone,
     };
 
+
     try {
       const api = new ApiClient();
       const token = getAccess() ?? undefined;
-      await api.post('/bookings/', payload, token);
+      await api.post('/api/bookings/', payload, token);
       alert(`Места успешно забронированы! Спасибо, ${userName}!`);
       navigate(`/film/${selectedFilm?.id ?? selectedSession?.id ?? ''}`);
     } catch (err) {

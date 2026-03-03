@@ -6,5 +6,18 @@ class Session(models.Model):
     start_time = models.DateTimeField()
     price = models.DecimalField(max_digits=6, decimal_places=2)
 
+    price_category1 = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2, 
+        default=300.00,
+        help_text="Цена для категории 1 (первые ряды)"
+    )
+    price_category2 = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2, 
+        default=400.00,
+        help_text="Цена для категории 2 (последние ряды)"
+    )
+
     def __str__(self):
         return f'{self.movie.title} in {self.hall.name} at {self.start_time}'

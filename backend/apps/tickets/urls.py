@@ -1,6 +1,10 @@
+# backend/apps/tickets/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from apps.tickets.views import (HallViewSet, SeatViewSet, MovieViewSet, SessionViewSet, PricingViewSet, BookingViewSet, TicketViewSet)
+from apps.tickets.views import (
+    HallViewSet, SeatViewSet, MovieViewSet, SessionViewSet,
+    PricingViewSet, BookingViewSet, TicketViewSet
+)
 from apps.tickets.serializers import UserSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import generics
@@ -27,7 +31,7 @@ router.register(r'bookings', BookingViewSet)
 router.register(r'tickets', TicketViewSet)
 
 urlpatterns = [
-    path('api/', include(router.urls)),
-    path('api/users/', UserListCreateView.as_view(), name='user-list'),
-    path('api/users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
+    path('', include(router.urls)),  # без api/
+    path('users/', UserListCreateView.as_view(), name='user-list'),
+    path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
 ]

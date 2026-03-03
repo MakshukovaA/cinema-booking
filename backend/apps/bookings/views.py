@@ -118,7 +118,7 @@ class BookingViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        session = get_object_or_404
+        session = get_object_or_404(Session, pk=session_id)
         unavailable_seats = self._check_seat_availability(seat_ids, session)
         if unavailable_seats:
             return Response(
