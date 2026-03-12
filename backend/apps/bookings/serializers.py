@@ -17,6 +17,7 @@ class BookingSeatSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'booking']
 
 
+
 class BookingSerializer(serializers.ModelSerializer):
     user_info = UserSerializer(source='user', read_only=True)
     session_info = SessionSerializer(source='session', read_only=True)

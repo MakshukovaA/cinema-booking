@@ -50,7 +50,7 @@ class BookingViewSet(viewsets.ModelViewSet):
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
 
     @action(detail=True, methods=['get'], url_path='qr')
     def qr(self, request, pk=None):

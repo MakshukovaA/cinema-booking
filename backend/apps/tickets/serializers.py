@@ -22,6 +22,7 @@ class HallSerializer(serializers.ModelSerializer):
 
 class SeatSerializer(serializers.ModelSerializer):
     hall = HallSerializer(read_only=True)
+    type = serializers.CharField(source='seat_type', read_only=True)
 
     class Meta:
         model = Seat
@@ -38,7 +39,7 @@ class SessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Session
-        fields = ('id', 'movie', 'hall', 'start_time', 'end_time')
+        fields = ('id', 'movie', 'hall', 'start_time')
 
 class PricingSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,7 +57,7 @@ class BookingSerializer(serializers.ModelSerializer):
 class TicketSerializer(serializers.ModelSerializer):
     booking = BookingSerializer(read_only=True)
     seat = SeatSerializer(read_only=True)
-    session = SessionSerializer(source='booking.session', read_only=True)
+    session = SessionSerializer(read_only=True)
     qr_code_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -64,6 +65,5 @@ class TicketSerializer(serializers.ModelSerializer):
         fields = ('id', 'booking', 'seat', 'session', 'price', 'code', 'issued_at', 'qr_code_url')
         read_only_fields = ('issued_at', 'qr_code_url')
 
-    @staticmethod
-    def get_qr_code_url(obj):
-        return obj.qr_code.url if getattr(obj, 'qr_code', None) else None
+    def get_qr_code_url(self, obj):
+        return obj.qr_code.url if obj.qr_code else None

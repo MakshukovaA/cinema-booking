@@ -4,6 +4,7 @@ from django.core.files.base import ContentFile
 import qrcode
 from io import BytesIO
 from django.core import signing
+from apps.sessions.models import Session
 import json
 import uuid
 
@@ -12,7 +13,7 @@ User = get_user_model()
 class Ticket(models.Model):
     booking = models.ForeignKey('bookings.Booking', on_delete=models.CASCADE, related_name='tickets')
     seat = models.ForeignKey('seats.Seat', on_delete=models.CASCADE)
-    session = models.ForeignKey('sessions.Session', on_delete=models.CASCADE, related_name='tickets', null=True, blank=True)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='tickets', null=True, blank=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     code = models.CharField(max_length=20, unique=True, blank=True)
     issued_at = models.DateTimeField(auto_now_add=True)
@@ -101,7 +102,7 @@ class Ticket(models.Model):
             filename = f"ticket_{self.code}.png"
 
             self.qr_code.save(filename, ContentFile(buffer.getvalue()), save=False)
-            super().save(update_fields=['qr_code'], skip_qr_generation=True)
+            super().save(update_fields=['qr_code'])
             
             return self.qr_code.url
             

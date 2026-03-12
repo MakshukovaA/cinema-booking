@@ -3,10 +3,8 @@ import tempfile
 import datetime
 from datetime import timezone
 from decimal import Decimal
-
 from django.test import TestCase
 from django.conf import settings
-
 from django.contrib.auth import get_user_model
 from apps.halls.models import Hall
 from apps.seats.models import Seat
