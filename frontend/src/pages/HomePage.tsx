@@ -1,39 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import ApiClient from '../api';
-import { fetchFilms } from '../data/mockData';
 import type { Film } from '../types/film';
 import MovieList from '../components/MovieList';
+import { fetchFilms } from '../data/mockData';
 
 const HomePage: React.FC = () => {
   const [films, setFilms] = useState<Film[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const api = new ApiClient();
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') ?? undefined : undefined;
+useEffect(() => {
+  const api = new ApiClient();
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') ?? undefined : undefined;
 
-    const loadFromApi = async () => {
-      try {
-        const data = await api.get<Film[]>('/movies', token);
-        setFilms(data);
-      } catch (err) {
-        console.error('Error loading films from API:', err);
-        try {
-          const data = await fetchFilms();
-          setFilms(data);
-          setError('Не удалось загрузить фильмы через API. Показаны мок-данные.');
-        } catch (mockErr) {
-          console.error('Fallback also failed:', mockErr);
-          setError('Не удалось загрузить фильмы.');
-        }
-      } finally {
-        setIsLoading(false);
+  const loadFromApi = async () => {
+    try {
+      const data: any = await api.get<Film[]>('/movies', token);
+      const list: Film[] = Array.isArray(data) ? data : [];
+      if (list.length === 0) {
+        const mock = await fetchFilms();
+        setFilms(mock);
+        setError('Не удалось загрузить фильмы через API. Показаны мок-данные.');
+      } else {
+        setFilms(list as Film[]);
       }
-    };
+    } catch (err) {
+      console.error('Error loading films from API:', err);
+      try {
+        const mock = await fetchFilms();
+        setFilms(mock);
+        setError('Не удалось загрузить фильмы через API. Показаны мок-данные.');
+      } catch {
+        setError('Не удалось загрузить фильмы.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    loadFromApi();
-  }, []);
+  loadFromApi();
+}, []);
 
   if (isLoading) {
     return (

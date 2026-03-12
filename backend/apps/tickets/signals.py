@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=Ticket)
 def generate_ticket_qr_code(sender, instance, created, **kwargs):
-    if created:
+    if created and not instance.qr_code:
         try:
             logger.info("Generating QR code for Ticket %s", instance.code)
             instance.generate_qr_code()

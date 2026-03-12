@@ -5,10 +5,28 @@ import type { Film } from '../types/film';
 import type { Session } from '../types/session';
 import FilmDetails from '../components/FilmDetails';
 import SessionList from '../components/SessionList';
-import { fetchFilmById } from '../data/mockData';
+import { fetchFilmById, fetchFilmSessionsForFilm } from '../data/mockData';
+
+// Хелпер для приведения мок-данных к типу Session
+const mapMockSessionsToSession = (mockSessions: any[], filmIdForMap?: string): Session[] => {
+  return (mockSessions ?? []).map((s) => ({
+    id: s.id ?? '',
+    filmId: s.filmId ?? filmIdForMap ?? '',
+    startTime: (s as any).dateTime ?? '',
+    hall: (s as any).venue ?? '',
+    availableSeats: (s as any).availableSeats ?? 0,
+    totalSeats: (s as any).totalSeats ?? (s as any).availableSeats ?? 0,
+    bookedSeats: (s as any).bookedSeats ?? [], // исправлено: массив строк
+    priceCategory1: (s as any).priceCategory1 ?? 0,
+    priceCategory2: (s as any).priceCategory2 ?? 0,
+    priceCategory3: (s as any).priceCategory3 ?? 0,
+    priceCategory4: (s as any).priceCategory4 ?? 0,
+  } as Session));
+};
 
 const FilmPage: React.FC = () => {
-  const { filmId } = useParams<{ filmId: string }>();
+  const { filmId: paramFilmId, slug } = useParams<{ filmId?: string; slug?: string }>();
+  const filmId = (paramFilmId ?? slug ?? '') as string;
   const [film, setFilm] = useState<Film | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -38,10 +56,31 @@ const FilmPage: React.FC = () => {
         if (filmId) {
           try {
             const res = await api.get<any>(`/sessions?filmId=${filmId}`, token);
-            const list = Array.isArray(res) ? res : res?.results ?? [];
-            setSessions(Array.isArray(list) ? list : []);
+            let list = Array.isArray(res) ? res : res?.results ?? [];
+            // Фолбэк на мок-данные, если API вернул пустой список
+            if (!Array.isArray(list) || list.length === 0) {
+              try {
+                const mockSessions = await fetchFilmSessionsForFilm?.(filmId);
+                list = mapMockSessionsToSession(
+                  Array.isArray(mockSessions) ? mockSessions : [],
+                  filmId
+                );
+              } catch {
+                list = [];
+              }
+            }
+            setSessions(Array.isArray(list) ? (list as Session[]) : []);
           } catch {
-            setSessions([]);
+            // если ошибка запроса — попробуем мок-данные
+            try {
+              const mockSessions = await fetchFilmSessionsForFilm?.(filmId);
+              setSessions(mapMockSessionsToSession(
+                Array.isArray(mockSessions) ? mockSessions : [],
+                filmId
+              ));
+            } catch {
+              setSessions([]);
+            }
           }
         }
       } catch (e) {

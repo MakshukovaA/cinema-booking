@@ -27,12 +27,17 @@ class Ticket(models.Model):
         return f'Ticket {self.code} for {self.booking}'
     
     def save(self, *args, **kwargs):
+        skip_qr = kwargs.pop('skip_qr_generation', False)
+        
         if not self.code:
             self.code = f"TKT-{uuid.uuid4().hex[:8].upper()}"
         if not self.session_id and self.booking and hasattr(self.booking, 'session'):
             self.session = self.booking.session
         
         super().save(*args, **kwargs)
+        
+        if not skip_qr and not self.qr_code:
+            self.generate_qr_code()
   
     def generate_qr_code(self, use_signed=True, extra_payload=None):
         try:
@@ -96,7 +101,7 @@ class Ticket(models.Model):
             filename = f"ticket_{self.code}.png"
 
             self.qr_code.save(filename, ContentFile(buffer.getvalue()), save=False)
-            super().save(update_fields=['qr_code'])
+            super().save(update_fields=['qr_code'], skip_qr_generation=True)
             
             return self.qr_code.url
             

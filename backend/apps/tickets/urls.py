@@ -1,9 +1,7 @@
-# backend/apps/tickets/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from apps.tickets.views import (
-    HallViewSet, SeatViewSet, MovieViewSet, SessionViewSet,
-    PricingViewSet, BookingViewSet, TicketViewSet
+    TicketViewSet
 )
 from apps.tickets.serializers import UserSerializer
 from django.contrib.auth import get_user_model
@@ -22,16 +20,10 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [DjangoModelPermissions]
 
 router = DefaultRouter()
-router.register(r'halls', HallViewSet)
-router.register(r'seats', SeatViewSet)
-router.register(r'movies', MovieViewSet)
-router.register(r'sessions', SessionViewSet)
-router.register(r'pricing', PricingViewSet)
-router.register(r'bookings', BookingViewSet)
-router.register(r'tickets', TicketViewSet)
+router.register(r'', TicketViewSet, basename='ticket')
 
 urlpatterns = [
-    path('', include(router.urls)),  # без api/
+    path('', include(router.urls)),
     path('users/', UserListCreateView.as_view(), name='user-list'),
     path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
 ]

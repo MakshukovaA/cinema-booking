@@ -11,7 +11,7 @@ from apps.halls.models import Hall
 from .permissions import IsAdminUser
 from apps.halls.views import HallListCreateView, HallDetailView
 from apps.seats.views import SeatListCreateView, SeatDetailView
-from apps.movies.views import MovieListCreateView, MovieDetailView
+from apps.movies.views import MovieViewSet
 from apps.sessions.views import SessionListCreateView, SessionDetailView
 from apps.pricing.views import PricingListCreateView, PricingDetailView
 from apps.bookings.views import BookingListCreateView, BookingDetailView

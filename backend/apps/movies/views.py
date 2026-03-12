@@ -1,20 +1,8 @@
-from rest_framework import generics
+from rest_framework import viewsets
 from .models import Movie
-from .serializers import MovieSerializer,  SessionSerializer
-from apps.sessions.models import Session
+from .serializers import MovieSerializer
 
-class MovieListCreateView(generics.ListCreateAPIView):
+
+class MovieViewSet(viewsets.ModelViewSet):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
-
-class MovieDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Movie.objects.all()
-    serializer_class = MovieSerializer
-
-class SessionListCreateView(generics.ListCreateAPIView):
-    queryset = Session.objects.all()
-    serializer_class = SessionSerializer
-
-class SessionDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Session.objects.all()
-    serializer_class = SessionSerializer
