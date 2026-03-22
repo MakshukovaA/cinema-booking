@@ -1,9 +1,9 @@
 export interface Seat {
-  id: string;
-  row: string;
+  id: string | number;
+  row: number;
   seatNumber: number;
   status: 'available' | 'booked' | 'occupied' | 'selected';
-  priceCategory: number;
+  priceCategory: 1 | 2;
 }
 
 export interface HallLayout {
@@ -28,5 +28,5 @@ export interface BookingInfo {
 export interface BookingFormData {
   userName: string;
   userPhone: string;
-  email?: string; 
+  email?: string;
 }

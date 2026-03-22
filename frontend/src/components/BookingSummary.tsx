@@ -16,9 +16,8 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   sessionTime,
   hallName,
 }) => {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(amount);
-  };
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(amount);
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
@@ -31,8 +30,10 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         <p className="font-medium">Выбранные места:</p>
         {selectedSeats.length > 0 ? (
           <ul className="list-disc list-inside text-sm text-gray-700 mt-2">
-            {selectedSeats.map(seat => (
-              <li key={seat.id}>{seat.row}{seat.seatNumber} (Цена: {seat.priceCategory === 1 ? 'Цена 1' : 'Цена 2'})</li>
+            {selectedSeats.map((seat) => (
+              <li key={seat.id}>
+                {seat.row}{seat.seatNumber} (Цена: {seat.priceCategory === 1 ? 'Цена 1' : 'Цена 2'})
+              </li>
             ))}
           </ul>
         ) : (

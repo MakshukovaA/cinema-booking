@@ -70,9 +70,12 @@ const MovieCard: React.FC<MovieCardProps> = ({ film }) => {
               </span>
             </div>
             
-            <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">
+            <Link
+            to={`/film/${film.id}`}
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md"
+            >
               Купить билет
-            </button>
+            </Link>
           </div>
         </div>
       </Link>

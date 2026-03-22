@@ -16,5 +16,12 @@ class Movie(models.Model):
     release_date = models.DateField(null=True, blank=True)
     description = models.TextField(blank=True)
 
+    poster_url = models.URLField(max_length=500, blank=True, null=True, default="")
+    background_image = models.URLField(max_length=500, blank=True, null=True, default="")
+    gallery = models.JSONField(default=list, blank=True)
+    director = models.CharField(max_length=255, blank=True, null=True)
+    cast = models.CharField(max_length=255, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+
     def __str__(self):
         return self.title

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Seat } from '../types/booking';
+import { getFallbackImage } from '../utilses/imageUtils';
 
 interface SeatProps {
   seat: Seat;
@@ -49,7 +50,7 @@ const SeatComponent: React.FC<SeatProps> = ({ seat, onClick, isInteractive = tru
 
   const handleClick = () => {
     if (seat.status === 'available' && isInteractive) {
-      onClick(seat.id);
+      onClick(String(seat.id));
     }
   };
 

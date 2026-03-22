@@ -1,12 +1,11 @@
 from rest_framework import serializers
 from .models import Movie
-from apps.sessions.models import Session
-from apps.halls.models import Hall
 
-
-class MovieSerializer(serializers.ModelSerializer):
+class FilmSerializer(serializers.ModelSerializer):
+    filmId = serializers.IntegerField(source='id', read_only=True)
     year = serializers.SerializerMethodField()
     posterUrl = serializers.SerializerMethodField()
+    poster = serializers.SerializerMethodField()
     backgroundImage = serializers.SerializerMethodField()
     gallery = serializers.SerializerMethodField()
     director = serializers.SerializerMethodField()
@@ -16,14 +15,15 @@ class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = [
-            'id',
+            'filmId',
             'title',
             'duration',
             'genre',
-            'rating',
             'year',
+            'rating',
             'description',
             'posterUrl',
+            'poster',
             'backgroundImage',
             'gallery',
             'director',
@@ -32,35 +32,27 @@ class MovieSerializer(serializers.ModelSerializer):
         ]
 
     def get_year(self, obj):
-        if obj.release_date:
-            return obj.release_date.year
-        return None
+        return obj.release_date.year if obj.release_date else None
 
     def get_posterUrl(self, obj):
-        return getattr(obj, 'poster_url', '')
+        return obj.poster_url or ""
+
+    def get_poster(self, obj):
+        return obj.poster_url or ""
 
     def get_backgroundImage(self, obj):
-        return getattr(obj, 'background_image', '')
+        return obj.background_image or ""
 
     def get_gallery(self, obj):
-        return getattr(obj, 'gallery', []) or []
+        return obj.gallery or []
 
     def get_director(self, obj):
-        return getattr(obj, 'director', None)
+        return obj.director
 
     def get_cast(self, obj):
-        return getattr(obj, 'cast', None)
+        return obj.cast
 
     def get_country(self, obj):
-        return getattr(obj, 'country', None)
+        return obj.country
 
-
-class SessionSerializer(serializers.ModelSerializer):
-    movie = MovieSerializer(read_only=True)
-    movie_id = serializers.PrimaryKeyRelatedField(queryset=Movie.objects.all(), source='movie', write_only=True)
-    hall_id = serializers.PrimaryKeyRelatedField(queryset=Hall.objects.all(), source='hall', write_only=True)
-    hall = serializers.PrimaryKeyRelatedField(read_only=True, source='hall')
-
-    class Meta:
-        model = Session
-        fields = ['id', 'movie', 'movie_id', 'hall', 'hall_id', 'start_time', 'price']
+MovieSerializer = FilmSerializer 

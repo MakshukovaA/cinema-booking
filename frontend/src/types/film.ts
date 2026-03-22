@@ -1,7 +1,8 @@
 export interface Film {
-  id: string;
+  id:string | number;
   title: string;
-  posterUrl: string;
+  posterUrl?: string;      
+  poster?: string;      
   description: string;
   duration: number;
   genre: string;
@@ -10,6 +11,6 @@ export interface Film {
   director?: string;
   cast?: string;
   country?: string;
-  backgroundImage?: string; 
+  backgroundImage?: string;
   gallery?: string[];
 }

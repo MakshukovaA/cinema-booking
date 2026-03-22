@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework import generics
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissionsOrAnonReadOnly, IsAuthenticated
 from rest_framework.response import Response
@@ -10,8 +11,8 @@ from apps.pricing.models import Pricing
 from apps.bookings.models import Booking
 from apps.tickets.models import Ticket
 from .serializers import (
-    HallSerializer, SeatSerializer, MovieSerializer, SessionSerializer,
-    PricingSerializer, BookingSerializer, TicketSerializer, UserSerializer
+    HallSerializer, SeatSerializer, MovieSerializer, SessionFrontendSerializer,
+    PricingSerializer, BookingSerializer, TicketSerializer, SeatFrontendSerializer
 )
 from django.contrib.auth import get_user_model
 
@@ -21,6 +22,14 @@ class HallViewSet(viewsets.ModelViewSet):
     queryset = Hall.objects.all()
     serializer_class = HallSerializer
     permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
+
+class SeatListCreateView(generics.ListCreateAPIView):
+    queryset = Seat.objects.all()
+    serializer_class = SeatFrontendSerializer
+
+class SeatDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Seat.objects.all()
+    serializer_class = SeatFrontendSerializer
 
 class SeatViewSet(viewsets.ModelViewSet):
     queryset = Seat.objects.all()
@@ -34,7 +43,7 @@ class MovieViewSet(viewsets.ModelViewSet):
 
 class SessionViewSet(viewsets.ModelViewSet):
     queryset = Session.objects.all()
-    serializer_class = SessionSerializer
+    serializer_class = SessionFrontendSerializer
     permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
 
 class PricingViewSet(viewsets.ModelViewSet):

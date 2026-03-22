@@ -1,222 +1,186 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import ApiClient from '../api';
-import { getAccess } from '../auth';
-import type { Film } from '../types/film';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { normalizeSession, normalizeSeats, extractListFromResponse } from '../utils/dataNormalizer';
+import { apiFetch, apiJson } from '../utils/api';
 import type { Session } from '../types/session';
-import SeatMap from '../components/SeatMap';
-import SeatLegend from '../components/SeatLegend';
-import BookingSummary from '../components/BookingSummary';
-import BookingForm from '../components/BookingForm';
 import type { Seat } from '../types/booking';
 
-const PRICE_CATEGORY_1_COST = 300;
-const PRICE_CATEGORY_2_COST = 400;
-
-const BookingPage: React.FC = () => {
-  const { sessionId: pathSessionId } = useParams<{ sessionId: string }>();
-  const location = useLocation();
-  const querySessionId = new URLSearchParams(location.search).get('sessionId');
-  const sessionIdToUse = pathSessionId ?? querySessionId ?? '';
-
+export default function BookingPage() {
+  const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
 
-  const [selectedFilm, setSelectedFilm] = useState<Film | null>(null);
-  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
-
+  const [session, setSession] = useState<Session | null>(null);
   const [seats, setSeats] = useState<Seat[]>([]);
-  const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
-  const [totalPrice, setTotalPrice] = useState<number>(0);
-
-  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
-  const [bookingError, setBookingError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
-  const calculateTotalPrice = useCallback((currentSeats: Seat[]) => {
-    const priceCat1 = selectedSession?.priceCategory1 ?? PRICE_CATEGORY_1_COST;
-    const priceCat2 = selectedSession?.priceCategory2 ?? PRICE_CATEGORY_2_COST;
-    return currentSeats.reduce((sum, seat) => {
-      const price = seat.priceCategory === 1 ? priceCat1 : priceCat2;
-      return sum + price;
-    }, 0);
-  }, [selectedSession]);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!sessionIdToUse) {
-      setBookingError('Не указан идентификатор сеанса (sessionId) в URL.');
-      setIsLoadingData(false);
-      return;
-    }
-    setIsLoadingData(true);
-    setBookingError(null);
+    async function loadBookingData() {
+      if (!sessionId) {
+        setError('Сеанс не найден');
+        setLoading(false);
+        return;
+      }
 
-    const api = new ApiClient();
-    const token = getAccess() ?? undefined;
-
-    const loadBookingDetails = async () => {
       try {
-        const sess: any = await api.get<any>(`/api/sessions/${sessionIdToUse}/`, token);
-        const filmObj = sess.film ?? { id: sess.film_id, title: sess.film_title };
+        setLoading(true);
+        setError(null);
 
-        const sessionData = {
-          id: sess.id,
-          startTime: sess.startTime ?? sess.start_time,
-          hall: sess.hall ?? sess.hall_name,
-          film: filmObj,
-          priceCategory1: sess.priceCategory1 ?? PRICE_CATEGORY_1_COST,
-          priceCategory2: sess.priceCategory2 ?? PRICE_CATEGORY_2_COST,
-        } as unknown as Session;
+        const sessionData = await apiJson(`/sessions/${sessionId}/`);
+        const normalizedSession = normalizeSession(sessionData);
+        setSession(normalizedSession);
 
-        setSelectedSession(sessionData);
-        setSelectedFilm({ id: filmObj.id, title: filmObj.title } as Film);
+        try {
+          const seatsResponse = await apiFetch(`/sessions/${sessionId}/available-seats/`);
 
-        const seatsRes: any = await api.get<any>(`/api/sessions/${sessionIdToUse}/available-seats/`, token);
-        const seatsList = Array.isArray(seatsRes) ? seatsRes : seatsRes?.seats ?? [];
-        const mapped: Seat[] = seatsList.map((s: any) => ({
-          id: s.id,
-          row: s.row,
-          seatNumber: s.number ?? s.seatNumber ?? 0,
-          status: s.status ?? 'available',
-          priceCategory: s.priceCategory ?? 1,
-        }));
-        setSeats(mapped);
+          if (seatsResponse.ok) {
+            const seatsData = await seatsResponse.json();
+            const seatsList = extractListFromResponse(seatsData);
+            const normalizedSeats = normalizeSeats(seatsList);
+            setSeats(normalizedSeats);
+          } else {
+            console.warn('Available seats endpoint not available:', seatsResponse.status);
+            setSeats([]);
+          }
+        } catch (seatsError) {
+          console.warn('Failed to load seats:', seatsError);
+          setSeats([]);
+        }
       } catch (err) {
-        console.error('Ошибка загрузки данных бронирования', err);
-        setBookingError('Ошибка загрузки данных бронирования.');
+        console.error('Failed to load booking data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load booking');
       } finally {
-        setIsLoadingData(false);
+        setLoading(false);
       }
-    };
+    }
 
-    loadBookingDetails();
-  }, [sessionIdToUse]);
+    loadBookingData();
+  }, [sessionId]);
 
-  useEffect(() => {
-    setTotalPrice(calculateTotalPrice(selectedSeats));
-  }, [selectedSeats, calculateTotalPrice]);
+  const toggleSeat = (seatId: string) => {
+    const seat = seats.find((item) => String(item.id) === seatId);
+    if (!seat || seat.status === 'booked') return;
 
-  const handleSeatClick = useCallback((seatId: string) => {
-    const clickedSeat = seats.find(s => s.id === seatId);
-    if (!clickedSeat || clickedSeat.status !== 'available') return;
+    setSelectedSeats((prev) =>
+      prev.includes(seatId)
+        ? prev.filter((id) => id !== seatId)
+        : [...prev, seatId]
+    );
+  };
 
-    setSelectedSeats(prev => {
-      const isAlreadySelected = prev.some(s => s.id === seatId);
-      if (isAlreadySelected) {
-        return prev.filter(s => s.id !== seatId);
-      } else {
-        return [...prev, clickedSeat];
-      }
-    });
-  }, [seats]);
+  const handleBooking = async () => {
+    if (!sessionId) {
+      alert('Сеанс не найден');
+      return;
+    }
 
-  const handleCancelSelection = () => setSelectedSeats([]);
-
-  const handleConfirmBooking = async (userName: string, userPhone: string) => {
     if (selectedSeats.length === 0) {
-      setBookingError('Пожалуйста, выберите места!');
+      alert('Выберите хотя бы одно место');
       return;
     }
-    if (!selectedSession) {
-      setBookingError('Данные сеанса не загружены.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setBookingError(null);
-
-    const payload = {
-      session: selectedSession.id,
-      seat_ids: selectedSeats.map(s => s.id),
-      userName,
-      userPhone,
-    };
-
 
     try {
-      const api = new ApiClient();
-      const token = getAccess() ?? undefined;
-      await api.post('/api/bookings/', payload, token);
-      alert(`Места успешно забронированы! Спасибо, ${userName}!`);
-      navigate(`/film/${selectedFilm?.id ?? selectedSession?.id ?? ''}`);
+      const payloads = [
+        { session: sessionId, seats: selectedSeats },
+        { session_id: sessionId, seats: selectedSeats },
+        { sessionId, seats: selectedSeats },
+        { session: sessionId, seat_ids: selectedSeats },
+        { session_id: sessionId, seat_ids: selectedSeats },
+      ];
+
+      let success = false;
+      let lastError: Error | null = null;
+
+      for (const payload of payloads) {
+        try {
+          const res = await apiFetch('/bookings/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (res.ok) {
+            success = true;
+            break;
+          }
+
+          const text = await res.text();
+          lastError = new Error(`Booking failed: ${res.status} ${text}`);
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error('Booking failed');
+        }
+      }
+
+      if (success) {
+        alert('Бронирование успешно!');
+        navigate('/');
+        return;
+      }
+
+      throw lastError ?? new Error('Booking failed');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Ошибка бронирования';
-      setBookingError(errorMessage);
-    } finally {
-      setIsSubmitting(false);
+      console.error('Booking error:', err);
+      alert('Ошибка бронирования');
     }
   };
 
-  if (isLoadingData) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <p className="text-center text-xl">Загрузка информации...</p>
-      </div>
-    );
-  }
+  if (loading) return <div className="loading">Загрузка...</div>;
+  if (error) return <div className="error">{error}</div>;
+  if (!session) return <div className="error">Сеанс не найден</div>;
 
-  if (bookingError) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <p className="text-center text-red-500 text-xl">{bookingError}</p>
-      </div>
-    );
-  }
-
-  if (!selectedFilm || !selectedSession) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <p className="text-center text-red-500 text-xl">
-          Не удалось загрузить полные данные. Попробуйте обновить страницу.
-        </p>
-      </div>
-    );
-  }
+  const totalPrice = selectedSeats.reduce((sum, seatId) => {
+    const seat = seats.find((item) => String(item.id) === seatId);
+    const category = seat?.priceCategory ?? 1;
+    return sum + (category === 2 ? session.priceCategory2 : session.priceCategory1);
+  }, 0);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-4xl font-bold text-center mb-8 text-gray-800">
-        Бронирование билетов: {selectedFilm.title}
-      </h2>
-      <p className="text-center text-gray-600 mb-6">
-        Сеанс: {new Date(selectedSession.startTime).toLocaleString('ru-RU')} | Зал: {selectedSession.hall}
-      </p>
+    <div className="booking-page">
+      <div className="booking-header">
+        <h1>Бронирование билетов</h1>
+        <p>Сеанс: {session.startTime}</p>
+        <p>Зал: {session.hall}</p>
+        <p>Свободно: {session.availableSeats} мест</p>
+      </div>
 
-      <SeatMap seats={seats} onSeatClick={handleSeatClick} />
-      <SeatLegend />
+      <div className="seats-grid">
+        {seats.length > 0 ? (
+          seats.map((seat) => {
+            const seatIdStr = String(seat.id);
+            const isSelected = selectedSeats.includes(seatIdStr);
+            const statusClass =
+              seat.status === 'booked'
+                ? 'booked'
+                : isSelected
+                ? 'selected'
+                : 'available';
 
-      {selectedSeats.length > 0 && (
-        <>
-          <BookingSummary
-            selectedSeats={selectedSeats}
-            totalPrice={totalPrice}
-            filmTitle={selectedFilm.title}
-            sessionTime={new Date(selectedSession.startTime).toLocaleString('ru-RU')}
-            hallName={selectedSession.hall}
-          />
-          <div className="mt-6">
-            <BookingForm
-              onSubmit={handleConfirmBooking}
-              selectedSeats={selectedSeats}
-              isSubmitting={isSubmitting}
-            />
-          </div>
-        </>
-      )}
+            return (
+              <button
+                key={seatIdStr}
+                className={`seat ${statusClass}`}
+                onClick={() => toggleSeat(seatIdStr)}
+                disabled={seat.status === 'booked'}
+              >
+                {seat.row}-{seat.seatNumber}
+              </button>
+            );
+          })
+        ) : (
+          <p>Список мест недоступен для этого сеанса.</p>
+        )}
+      </div>
 
-      {selectedSeats.length > 0 && (
-        <div className="text-center mt-6">
-          <button
-            onClick={handleCancelSelection}
-            disabled={isSubmitting}
-            className={`px-6 py-3 rounded-md font-semibold shadow-md text-white transition-colors duration-200
-              ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-700'}`}
-          >
-            Отменить выбор мест
-          </button>
-        </div>
-      )}
+      <div className="booking-summary">
+        <p>Выбрано мест: {selectedSeats.length}</p>
+        <p>К оплате: {totalPrice} ₽</p>
+        <button onClick={handleBooking} disabled={selectedSeats.length === 0}>
+          Забронировать
+        </button>
+      </div>
     </div>
   );
-};
-
-export default BookingPage;
+}

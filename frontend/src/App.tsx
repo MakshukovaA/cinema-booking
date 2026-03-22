@@ -13,7 +13,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/film/:filmId" element={<FilmPage />} />
-          <Route path="/booking/:sessionId" element={<BookingPage />} />
+          <Route path="/booking/:sessionId?" element={<BookingPage />} />
         </Route>
         <Route path="/login" element={<LoginForm />} />
         <Route path="*" element={<Navigate to="/" />} />
@@ -21,5 +21,4 @@ function App() {
     </Router>
   );
 }
-
 export default App;

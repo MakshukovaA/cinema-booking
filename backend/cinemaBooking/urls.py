@@ -8,7 +8,6 @@ urlpatterns = [
     path('', api_root, name='api_root'),
 
     path('api/', include('apps.api.urls')),
-
     path('api/admin/', include('apps.api.admin_urls')),
 
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

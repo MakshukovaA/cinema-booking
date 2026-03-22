@@ -1,5 +1,5 @@
 export interface Session {
-  id: string;
+  id: string | number;
   filmId: string;
   startTime: string;
   hall: string;

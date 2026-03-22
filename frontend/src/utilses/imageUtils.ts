@@ -1,8 +1,4 @@
-// Утилиты для работы с изображениями с Freepik
-
-// Изображения с Freepik (бесплатные, для некоммерческого использования)
 export const FREEPIK_IMAGES = {
-  // Космос / Интерстеллар
   SPACE: {
     POSTER: 'https://img.freepik.com/free-photo/space-background-with-stars-nebula_53876-104948.jpg?w=300&h=450&t=st=1742486400~exp=1742490000~hmac=...',
     BACKGROUND: 'https://img.freepik.com/free-photo/space-background-with-stars-nebula_53876-104948.jpg?w=1920&h=1080&t=st=1742486400~exp=1742490000~hmac=...',
@@ -13,7 +9,6 @@ export const FREEPIK_IMAGES = {
     ]
   },
   
-  // Город / Начало
   CITY: {
     POSTER: 'https://img.freepik.com/free-photo/futuristic-city-with-skyscrapers_53876-104951.jpg?w=300&h=450&t=st=1742486400~exp=1742490000~hmac=...',
     BACKGROUND: 'https://img.freepik.com/free-photo/futuristic-city-with-skyscrapers_53876-104951.jpg?w=1920&h=1080&t=st=1742486400~exp=1742490000~hmac=...',
@@ -24,7 +19,6 @@ export const FREEPIK_IMAGES = {
     ]
   },
   
-  // Пустыня / Дюна
   DESERT: {
     POSTER: 'https://img.freepik.com/free-photo/sand-dunes-desert_53876-104955.jpg?w=300&h=450&t=st=1742486400~exp=1742490000~hmac=...',
     BACKGROUND: 'https://img.freepik.com/free-photo/sand-dunes-desert_53876-104955.jpg?w=1920&h=1080&t=st=1742486400~exp=1742490000~hmac=...',
@@ -34,8 +28,7 @@ export const FREEPIK_IMAGES = {
       'https://img.freepik.com/free-photo/spice-desert_53876-104958.jpg?w=400&h=225&t=st=1742486400~exp=1742490000~hmac=...'
     ]
   },
-  
-  // Ночь / Темный рыцарь
+
   NIGHT: {
     POSTER: 'https://img.freepik.com/free-photo/dark-city-night_53876-104959.jpg?w=300&h=450&t=st=1742486400~exp=1742490000~hmac=...',
     BACKGROUND: 'https://img.freepik.com/free-photo/dark-city-night_53876-104959.jpg?w=1920&h=1080&t=st=1742486400~exp=1742490000~hmac=...',
@@ -47,7 +40,6 @@ export const FREEPIK_IMAGES = {
   }
 };
 
-// Fallback изображения (Data URL) на случай ошибок
 export const FALLBACK_IMAGES = {
   POSTERS: {
     BLUE: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWU0MGFmIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyMCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbnRlcnN0ZWxsYXI8L3RleHQ+PC9zdmc+',
@@ -63,7 +55,6 @@ export const FALLBACK_IMAGES = {
   ]
 };
 
-// Функция для получения изображений фильма
 export const getFilmImages = (filmId: string) => {
   const filmImages = {
     interstellar: FREEPIK_IMAGES.SPACE,
@@ -75,7 +66,6 @@ export const getFilmImages = (filmId: string) => {
   return filmImages[filmId as keyof typeof filmImages] || FREEPIK_IMAGES.SPACE;
 };
 
-// Функция для получения fallback изображения
 export const getFallbackImage = (type: 'poster' | 'background' | 'gallery', filmId?: string, index?: number) => {
   if (type === 'poster') {
     const posters = {

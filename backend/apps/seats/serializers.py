@@ -1,22 +1,34 @@
 from rest_framework import serializers
-from apps.seats.models import Seat
+from .models import Seat
+from .models import Hall 
+
+class HallSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hall
+        fields = ('id', 'name', 'location', 'rows', 'cols', 'capacity')
 
 class SeatSerializer(serializers.ModelSerializer):
-    hall_name = serializers.CharField(source='hall.name', read_only=True)
-
-    seatNumber = serializers.IntegerField(source='number', read_only=True)
-    priceCategory = serializers.SerializerMethodField()
-    status = serializers.SerializerMethodField()
+    hall = HallSerializer(read_only=True)
+    type = serializers.CharField(source='seat_type', read_only=True)
 
     class Meta:
         model = Seat
-        fields = ('id', 'row', 'seatNumber', 'status', 'priceCategory', 'hall', 'hall_name')
+        fields = ('id', 'hall', 'row', 'number', 'type')
 
-    def get_priceCategory(self, obj):
-        seat_type = getattr(obj, 'seat_type', None)
-        if seat_type == 'VIP':
-            return 2
-        return 1
+class SeatFrontendSerializer(serializers.ModelSerializer):
+    seatNumber = serializers.IntegerField(source='number')
+    status = serializers.SerializerMethodField()
+    priceCategory = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Seat
+        fields = ('id', 'row', 'seatNumber', 'status', 'priceCategory')
 
     def get_status(self, obj):
         return 'available'
+
+    def get_priceCategory(self, obj):
+        t = getattr(obj, 'seat_type', None)
+        if t in ('VIP', 'VIP_SEAT'):
+            return 2
+        return 1

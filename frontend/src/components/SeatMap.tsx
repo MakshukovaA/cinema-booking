@@ -1,5 +1,4 @@
 import React from 'react';
-import SeatComponent from './Seat';
 import type { Seat } from '../types/booking';
 
 interface SeatMapProps {
@@ -9,32 +8,58 @@ interface SeatMapProps {
 
 const SeatMap: React.FC<SeatMapProps> = ({ seats, onSeatClick }) => {
   const seatsByRow = seats.reduce((acc, seat) => {
-    if (!acc[seat.row]) {
-      acc[seat.row] = [];
-    }
-    acc[seat.row].push(seat);
+    const key = seat.row;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(seat);
     return acc;
-  }, {} as Record<string, Seat[]>);
+  }, {} as Record<number, Seat[]>);
 
-  const sortedRows = Object.keys(seatsByRow).sort();
+  const sortedRows = Object.keys(seatsByRow).map(k => Number(k)).sort((a, b) => a - b);
+
+  const SeatButton: React.FC<{ seat: Seat; onClick: () => void; disabled?: boolean }> = ({
+    seat,
+    onClick,
+    disabled,
+  }) => {
+    const base = 'w-8 h-8 border rounded flex items-center justify-center text-xs';
+    const className =
+      seat.status === 'available'
+        ? 'bg-white hover:bg-gray-100'
+        : seat.status === 'booked' || seat.status === 'occupied'
+        ? 'bg-gray-300 cursor-not-allowed'
+        : 'bg-green-300';
+    return (
+      <button
+        type="button"
+        className={`${base} ${className}`}
+        onClick={onClick}
+        disabled={disabled || seat.status !== 'available'}
+        aria-label={`Seat ${seat.row}-${seat.seatNumber}`}
+      >
+        {seat.seatNumber}
+      </button>
+    );
+  };
 
   return (
-    <div className="bg-gray-800 p-6 rounded-lg shadow-inner overflow-x-auto">
-      <div className="flex flex-col items-center">
-        <div className="text-center text-white text-lg font-semibold mb-4">Экран</div>
-        {sortedRows.map(row => (
-          <div key={row} className="flex justify-center mb-1">
-            <span className="text-gray-400 w-8 flex items-center justify-center mr-2 text-sm">{row}</span>
-            {seatsByRow[row].map(seat => (
-              <SeatComponent
-                key={seat.id}
+    <div className="bg-gray-100 p-4 rounded-lg">
+      <div className="text-center text-sm text-gray-600 mb-2">Экран</div>
+      {sortedRows.map((row) => (
+        <div key={row} className="flex justify-center items-center gap-2 mb-1">
+          <span className="text-xs w-6 text-right text-gray-600">{row}</span>
+          {seatsByRow[row]
+            .slice()
+            .sort((a, b) => a.seatNumber - b.seatNumber)
+            .map((seat) => (
+              <SeatButton
+                key={String(seat.id)}
                 seat={seat}
-                onClick={onSeatClick}
+                onClick={() => onSeatClick(String(seat.id))}
+                disabled={seat.status !== 'available'}
               />
             ))}
-          </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 };

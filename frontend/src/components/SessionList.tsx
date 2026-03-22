@@ -1,30 +1,36 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import type { Session } from '../types/session';
 
-type Props = {
-  sessions?: Session[];
-  onSessionClick?: (session: Session) => void;
+interface SessionListProps {
+  sessions: Session[];
+}
+
+const formatDateTime = (iso?: string) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? '' : d.toLocaleString('ru-RU');
 };
 
-const SessionList: React.FC<Props> = ({ sessions, onSessionClick }) => {
-  const list = Array.isArray(sessions) ? sessions : [];
-
-  if (list.length === 0) {
-    return <div className="text-gray-500 text-center mt-6">Сеансы не найдены</div>;
+const SessionList: React.FC<SessionListProps> = ({ sessions }) => {
+  if (!sessions || sessions.length === 0) {
+    return <div className="text-center text-gray-500">Сеансы не найдены</div>;
   }
 
   return (
-    <div className="space-y-2">
-      {list.map((s) => (
-        <div
-          key={s.id}
-          className="p-3 border rounded cursor-pointer"
-          onClick={() => onSessionClick?.(s)}
-        >
-          <div className="font-semibold">
-            {new Date(s.startTime).toLocaleString('ru-RU')}
+    <div className="space-y-4">
+      {sessions.map((s) => (
+        <div key={s.id} className="flex items-center justify-between p-4 border rounded-lg">
+          <div>
+            <div className="text-sm font-semibold">{formatDateTime(s.startTime)}</div>
+            <div className="text-xs text-gray-500">Зал: {s.hall}</div>
           </div>
-          <div className="text-sm text-gray-600">{s.hall}</div>
+          <Link
+            to={`/booking/${s.id}`}
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg"
+          >
+            Забронировать
+          </Link>
         </div>
       ))}
     </div>

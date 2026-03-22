@@ -4,7 +4,6 @@ from rest_framework.response import Response
 
 @api_view(['GET'])
 def api_root(request):
-    """Корневой эндпоинт API, возвращающий список доступных ресурсов"""
     return Response({
         'halls': '/api/halls/',
         'seats': '/api/seats/',
@@ -16,10 +15,11 @@ def api_root(request):
         'users': '/api/users/',
         'admin': '/api/admin/',
         'token': '/api/token/',
+        'token_refresh': '/api/token/refresh/',
     })
 
 urlpatterns = [
-    path('', api_root, name='api-root'),  # <-- КОРНЕВОЙ МАРШРУТ
+    path('', api_root, name='api-root'),
     path('halls/', include('apps.halls.urls')),
     path('seats/', include('apps.seats.urls')),
     path('movies/', include('apps.movies.urls')),

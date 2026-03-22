@@ -10,12 +10,9 @@ const Header: React.FC = () => {
             🎬 Кинотеатр Онлайн
           </Link>
           <div className="space-x-6">
-            <Link to="/" className="hover:text-blue-200 font-medium">
-              Главная
-            </Link>
-            <Link to="/film/interstellar" className="hover:text-blue-200 font-medium">
-              Фильмы
-            </Link>
+            <Link to="/" className="hover:text-blue-200 font-medium">Главная</Link>
+            <Link to="/films" className="hover:text-blue-200 font-medium">Фильмы</Link>
+            <Link to="/booking" className="hover:text-blue-200 font-medium">Забронировать</Link>
           </div>
         </div>
       </nav>

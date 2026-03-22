@@ -17,7 +17,7 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
-
+      
   backend:
     build:
       context: ./backend
@@ -33,12 +33,13 @@ services:
       POSTGRES_HOST: db
       DATABASE_URL: "postgres://${POSTGRES_USER:-cinema_user}:${POSTGRES_PASSWORD:-strongpassword}@db:5432/${POSTGRES_DB:-cinema_booking}"
     ports:
-      - "8000:8000"  
+      - "8000:8000"
     volumes:
-      - ./backend:/app 
-      - media_volume:/app/media 
+      - ./backend:/app
+      - media_volume:/app/media
     networks:
       - cinema-network
+    command: ["/bin/sh", "-c", "/app/entrypoint.sh"]
 
   frontend:
     build:
@@ -50,7 +51,7 @@ services:
     environment:
       REACT_APP_API_URL: http://backend:8000/api
       REACT_APP_WS_URL: ws://backend:8000
-      REACT_APP_USE_REAL_API: "true"  # <-- ДОБАВЛЕНО: отключаем моки
+      REACT_APP_USE_REAL_API: "true"
     ports:
       - "3000:3000"
     volumes:

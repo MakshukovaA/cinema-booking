@@ -1,14 +1,21 @@
 from decimal import Decimal
-from django.db import transaction
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, viewsets, status
+from django.db import transaction
+from rest_framework import status, generics, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 
 from apps.bookings.models import Booking, BookingSeat
-from .serializers import BookingSerializer, BookingCreateSerializer, BookingDetailSerializer, BookingSeatSerializer
+from .serializers import (
+    BookingSerializer,
+    BookingCreateSerializer,
+    BookingDetailSerializer,
+    BookingSeatSerializer,
+    BookingInfoSerializer,
+    BookingFormSerializer,
+)
 from apps.seats.models import Seat
 from apps.sessions.models import Session
 from apps.core.permissions import AdminOrGuestReadOnly, IsAdminGroup, IsOwnerOrAdmin
@@ -85,9 +92,7 @@ class BookingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
-        if self.action == 'create':
-            return BookingCreateSerializer
-        elif self.action == 'update' or self.action == 'partial_update':
+        if self.action in ['create', 'update', 'partial_update']:
             return BookingCreateSerializer
         return BookingSerializer
 
@@ -131,7 +136,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking = Booking.objects.create(
             user=request.user,
             session=session,
-            status='P' 
+            status='P'
         )
         total_price = Decimal('0.00')
         for seat_id in seat_ids:
@@ -153,6 +158,13 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         serializer = BookingSerializer(booking)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'], url_path='info')
+    def info(self, request, pk=None):
+        """DTO‑уровень BookingInfo для фронтенда"""
+        booking = self.get_object()
+        serializer = BookingInfoSerializer(booking)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsOwnerOrAdmin])
     def cancel(self, request, pk=None):

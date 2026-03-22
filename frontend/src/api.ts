@@ -1,7 +1,11 @@
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 export default class ApiClient {
-  private base = process.env.REACT_APP_API_URL || '/api'; 
+  private base: string;
+
+  constructor(baseUrl?: string) {
+    this.base = baseUrl ?? (process.env.REACT_APP_API_URL || '/api');
+  }
 
   private async request<T>(
     path: string,
@@ -12,13 +16,15 @@ export default class ApiClient {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const url = `${this.base}${path.startsWith('/') ? path : '/' + path}`;
+    const url = path.startsWith('/api')
+      ? path
+      : `${this.base}${path.startsWith('/') ? path : '/' + path}`;
 
     const res = await fetch(url, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
-      credentials: 'include', 
+      credentials: 'include',
     });
 
     const contentType = res.headers.get('content-type') ?? '';
