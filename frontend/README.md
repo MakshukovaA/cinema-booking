@@ -1,32 +1,60 @@
-# cinema-booking-frontend
+# React + TypeScript + Vite
 
-Frontend проекта cinema-booking на базе Create React App (React 18).
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Цель:
-- работать с Django-бэкендом через прокси/NGINX или локальные API URL.
+Currently, two official plugins are available:
 
-Установка и запуск
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-1. Установка зависимостей
-- npm install
-  или
-- yarn install
+## React Compiler
 
-2. Локальная разработка
-- Установить переменные окружения (при необходимости)
-  - REACT_APP_API_URL=http://localhost:8000/api
-  - REACT_APP_WS_URL=ws://localhost:8000
-- npm start
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-3. Сборка для продакшна
-- npm run build
+## Expanding the ESLint configuration
 
-4. Конфигурация окружения (пример)
-- В Docker окружении FRONTEND видит:
-  REACT_APP_API_URL: http://localhost:8000/api
-  REACT_APP_WS_URL: ws://localhost:8000
-  REACT_APP_USE_REAL_API: "true"
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-5. Примечания
-- В продакшне фронтенд может проксироваться через nginx (nginx.conf) и обращаться к API по /api.
-- Если встречаешь CORS ошибки, убедись, что backend позволяет Origin http://localhost:3000, и настройки CORS активны.
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      tseslint.configs.recommendedTypeChecked,
+      tseslint.configs.strictTypeChecked,
+      tseslint.configs.stylisticTypeChecked,.
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+])
+```
+
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      reactX.configs['recommended-typescript'],
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+])
+```
