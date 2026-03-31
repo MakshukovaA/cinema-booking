@@ -2,13 +2,20 @@ from rest_framework import serializers
 from apps.seats.serializers import SeatFrontendSerializer
 from .models import Booking, BookingSeat
 from apps.sessions.models import Session
-from apps.seats.models import Seat 
+from apps.seats.models import Seat
+
 
 class BookingSerializer(serializers.ModelSerializer):
+    guestName = serializers.CharField(source='guest_name', read_only=True)
+    guestEmail = serializers.EmailField(source='guest_email', read_only=True)
+    guestPhone = serializers.CharField(source='guest_phone', read_only=True)
+
     class Meta:
         model = Booking
-        fields = ('id', 'user', 'session', 'total_price', 'status', 'created_at')
-        read_only_fields = ('id', 'user', 'session', 'total_price', 'status', 'created_at')
+        fields = ('id', 'user', 'session', 'total_price', 'status', 'created_at',
+                  'guestName', 'guestEmail', 'guestPhone')
+        read_only_fields = ('id', 'user', 'session', 'total_price', 'status', 'created_at',
+                            'guestName', 'guestEmail', 'guestPhone')
 
 
 class BookingCreateSerializer(serializers.Serializer):
@@ -16,12 +23,20 @@ class BookingCreateSerializer(serializers.Serializer):
     seat_ids = serializers.ListField(
         child=serializers.IntegerField(), allow_empty=False
     )
+    guestName = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    guestEmail = serializers.EmailField(required=False, allow_blank=True)
+    guestPhone = serializers.CharField(max_length=20, required=False, allow_blank=True)
 
 
 class BookingDetailSerializer(serializers.ModelSerializer):
+    guestName = serializers.CharField(source='guest_name', read_only=True)
+    guestEmail = serializers.EmailField(source='guest_email', read_only=True)
+    guestPhone = serializers.CharField(source='guest_phone', read_only=True)
+
     class Meta:
         model = Booking
-        fields = ('id', 'user', 'session', 'total_price', 'status', 'created_at')
+        fields = ('id', 'user', 'session', 'total_price', 'status', 'created_at',
+                  'guestName', 'guestEmail', 'guestPhone')
 
 
 class BookingSeatSerializer(serializers.ModelSerializer):
@@ -45,6 +60,11 @@ class BookingInfoSerializer(serializers.ModelSerializer):
     totalPrice = serializers.SerializerMethodField()
     userName = serializers.SerializerMethodField()
     userPhone = serializers.SerializerMethodField()
+    userEmail = serializers.SerializerMethodField()
+    isGuest = serializers.SerializerMethodField()
+    guestName = serializers.SerializerMethodField()
+    guestEmail = serializers.SerializerMethodField()
+    guestPhone = serializers.SerializerMethodField()
 
     class Meta:
         model = Booking
@@ -57,6 +77,11 @@ class BookingInfoSerializer(serializers.ModelSerializer):
             'totalPrice',
             'userName',
             'userPhone',
+            'userEmail',
+            'isGuest',
+            'guestName',
+            'guestEmail',
+            'guestPhone',
         ]
 
     def get_selectedSeats(self, obj):
@@ -71,6 +96,8 @@ class BookingInfoSerializer(serializers.ModelSerializer):
         return float(value)
 
     def get_userName(self, obj):
+        if obj.guest_name:
+            return obj.guest_name
         user = getattr(obj, 'user', None)
         if not user:
             return ""
@@ -78,7 +105,29 @@ class BookingInfoSerializer(serializers.ModelSerializer):
         return full_name or getattr(user, 'username', "")
 
     def get_userPhone(self, obj):
+        if obj.guest_phone:
+            return obj.guest_phone
         user = getattr(obj, 'user', None)
         if not user:
             return ""
         return getattr(user, 'phone', "") or ""
+
+    def get_userEmail(self, obj):
+        if obj.guest_email:
+            return obj.guest_email
+        user = getattr(obj, 'user', None)
+        if not user:
+            return ""
+        return getattr(user, 'email', "") or ""
+
+    def get_isGuest(self, obj):
+        return obj.user is None
+
+    def get_guestName(self, obj):
+        return obj.guest_name or ""
+
+    def get_guestEmail(self, obj):
+        return obj.guest_email or ""
+
+    def get_guestPhone(self, obj):
+        return obj.guest_phone or ""

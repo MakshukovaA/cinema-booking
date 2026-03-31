@@ -46,4 +46,4 @@ test_output/
 .pytest_cache/
 .cache/
 
-# migrations/
+migrations/

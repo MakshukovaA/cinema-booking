@@ -1,9 +1,9 @@
 from decimal import Decimal
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from rest_framework import status, generics, viewsets
+from rest_framework import status, generics, viewsets, serializers
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 
@@ -23,7 +23,13 @@ from apps.core.permissions import AdminOrGuestReadOnly, IsAdminGroup, IsOwnerOrA
 
 class BookingListCreateView(generics.ListCreateAPIView):
     queryset = Booking.objects.all().order_by('-created_at')
-    permission_classes = [IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        elif self.request.method == 'POST':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -31,18 +37,28 @@ class BookingListCreateView(generics.ListCreateAPIView):
         return BookingSerializer
 
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return Booking.objects.filter(status__in=['C', 'P']).order_by('-created_at')
+        
         user = self.request.user
         if user.is_staff or user.is_superuser:
             return Booking.objects.all().order_by('-created_at')
         return Booking.objects.filter(user=user).order_by('-created_at')
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
+        else:
+            serializer.save(user=None)
 
 
 class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Booking.objects.all()
-    permission_classes = [IsOwnerOrAdmin]
+    
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsOwnerOrAdmin()]
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'PATCH']:
@@ -51,14 +67,10 @@ class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
         instance = self.get_object()
-
         self.check_object_permissions(request, instance)
-        
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        
+
+        # Обновление мест (seat_ids) выполняем вручную, без использования сериализатора для сохранения
         new_seat_ids = request.data.get('seat_ids', [])
         if new_seat_ids:
             BookingSeat.objects.filter(booking=instance).delete()
@@ -81,30 +93,36 @@ class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
                     )
             
             instance.total_price = total_price
-        
-        self.perform_update(serializer)
-        
+            instance.save(update_fields=['total_price'])
+
+        serializer = BookingDetailSerializer(instance)
         return Response(serializer.data)
 
 
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all().order_by('-created_at')
-    permission_classes = [IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'info']:
+            return [AllowAny()]
+        elif self.action == 'create':
+            return [AllowAny()]
+        elif self.action == 'cancel':
+            return [IsOwnerOrAdmin()]
+        elif self.action in ['confirm']:
+            return [IsAdminGroup()]
+        else:
+            return [IsAdminGroup()]
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return BookingCreateSerializer
         return BookingSerializer
 
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return [IsAuthenticated()]
-        elif self.action == 'create':
-            return [IsAuthenticated()]
-        else:
-            return [IsAdminGroup()]
-
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return Booking.objects.filter(status__in=['C', 'P']).order_by('-created_at')
+        
         user = self.request.user
         if user.is_staff or user.is_superuser:
             return Booking.objects.all().order_by('-created_at')
@@ -112,7 +130,6 @@ class BookingViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        """Создание бронирования"""
         data = request.data.copy()
         session_id = data.get('session')
         seat_ids = data.get('seat_ids', [])
@@ -133,11 +150,13 @@ class BookingViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
+       
         booking = Booking.objects.create(
-            user=request.user,
+            user=request.user if request.user.is_authenticated else None,
             session=session,
             status='P'
         )
+        
         total_price = Decimal('0.00')
         for seat_id in seat_ids:
             seat = Seat.objects.get(id=seat_id)
@@ -161,14 +180,12 @@ class BookingViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='info')
     def info(self, request, pk=None):
-        """DTO‑уровень BookingInfo для фронтенда"""
         booking = self.get_object()
         serializer = BookingInfoSerializer(booking)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsOwnerOrAdmin])
+    @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
-        """Отмена бронирования"""
         booking = self.get_object()
         
         if booking.status == 'X':
@@ -185,9 +202,8 @@ class BookingViewSet(viewsets.ModelViewSet):
         serializer = BookingSerializer(booking)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAdminGroup])
+    @action(detail=True, methods=['post'])
     def confirm(self, request, pk=None):
-        """Подтверждение бронирования администратором"""
         booking = self.get_object()
         
         if booking.status == 'C':
@@ -203,7 +219,6 @@ class BookingViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def _check_seat_availability(self, seat_ids, session):
-        """Проверяет доступность мест на сеансе"""
         unavailable_seats = []
         
         for seat_id in seat_ids:

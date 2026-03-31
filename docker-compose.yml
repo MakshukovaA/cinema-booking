@@ -3,10 +3,9 @@ services:
     image: postgres:15-alpine
     container_name: cinema_db
     environment:
-      POSTGRES_DB: cinema_booking
-      POSTGRES_USER: cinema_user
-      POSTGRES_PASSWORD: strongpassword
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: ${POSTGRES_DB:-cinema_booking}
+      POSTGRES_USER: ${POSTGRES_USER:-cinema_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strongpassword}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -31,7 +30,8 @@ services:
     environment:
       MEDIA_ROOT: /app/media
       POSTGRES_HOST: db
-      DATABASE_URL: "postgres://${POSTGRES_USER:-cinema_user}:${POSTGRES_PASSWORD:-strongpassword}@db:5432/${POSTGRES_DB:-cinema_booking}"
+      POSTGRES_PORT: 5432
+      DATABASE_URL: postgres://${POSTGRES_USER:-cinema_user}:${POSTGRES_PASSWORD:-strongpassword}@db:5432/${POSTGRES_DB:-cinema_booking}
     ports:
       - "8000:8000"
     volumes:
@@ -39,8 +39,7 @@ services:
       - media_volume:/app/media
     networks:
       - cinema-network
-    command: ["/bin/sh", "-c", "/app/entrypoint.sh"]
-
+   
   frontend:
     build:
       context: ./frontend
@@ -54,9 +53,6 @@ services:
       REACT_APP_USE_REAL_API: "true"
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/frontend
-      - ./frontend/node_modules:/frontend/node_modules
     networks:
       - cinema-network
 

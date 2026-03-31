@@ -1,6 +1,6 @@
 const RAW_API_BASE =
   (typeof process !== 'undefined' && process.env.REACT_APP_API_URL) ||
-  'http://backend:8000/api';
+  'http://localhost:8000/api';
 
 export const API_BASE_URL = RAW_API_BASE.replace(/\/+$/, '');
 
