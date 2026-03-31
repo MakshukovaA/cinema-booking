@@ -4,8 +4,8 @@ from .models import Movie
 class FilmSerializer(serializers.ModelSerializer):
     filmId = serializers.IntegerField(source='id', read_only=True)
     year = serializers.SerializerMethodField()
-    posterUrl = serializers.SerializerMethodField()
-    poster = serializers.SerializerMethodField()
+    posterUrl = serializers.CharField(source='poster_url', read_only=True, allow_blank=True)
+    poster = serializers.CharField(source='poster_url', read_only=True, allow_blank=True)
     backgroundImage = serializers.SerializerMethodField()
     gallery = serializers.SerializerMethodField()
     director = serializers.SerializerMethodField()

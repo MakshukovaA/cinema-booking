@@ -69,8 +69,6 @@ class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         self.check_object_permissions(request, instance)
-
-        # Обновление мест (seat_ids) выполняем вручную, без использования сериализатора для сохранения
         new_seat_ids = request.data.get('seat_ids', [])
         if new_seat_ids:
             BookingSeat.objects.filter(booking=instance).delete()

@@ -2,12 +2,20 @@ from rest_framework import serializers
 from .models import Session
 
 class SessionFrontendSerializer(serializers.ModelSerializer):
-    filmId = serializers.CharField(source='movie.id', read_only=True)
+    filmId = serializers.PrimaryKeyRelatedField(
+        source='movie', 
+        read_only=True
+    )
     startTime = serializers.DateTimeField(source='start_time', read_only=True)
     hall = serializers.CharField(source='hall.name', read_only=True)
 
     availableSeats = serializers.SerializerMethodField()
-    priceCategory1 = serializers.SerializerMethodField()
+    priceCategory1 = serializers.DecimalField(
+        source='price', 
+        max_digits=10, 
+        decimal_places=2,
+        read_only=True
+    )
     priceCategory2 = serializers.SerializerMethodField()
     totalSeats = serializers.SerializerMethodField()
     bookedSeats = serializers.SerializerMethodField()

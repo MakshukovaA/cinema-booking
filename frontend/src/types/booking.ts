@@ -15,7 +15,7 @@ export interface HallLayout {
 }
 
 export interface BookingInfo {
-  sessionId: string;
+  sessionId:string | number;
   filmTitle: string;
   sessionTime: string;
   hallName: string;
