@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Movie
+from django.conf import settings
 
 class FilmSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True) 
@@ -36,7 +37,9 @@ class FilmSerializer(serializers.ModelSerializer):
         return obj.release_date.year if obj.release_date else None
 
     def get_posterUrl(self, obj):
-        return obj.poster_url or ""
+        if obj.poster:
+            return settings.MEDIA_URL + str(obj.poster)
+        return None
 
     def get_poster(self, obj):
         return obj.poster_url or ""

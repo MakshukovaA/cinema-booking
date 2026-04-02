@@ -1,6 +1,8 @@
 import React from 'react';
-import type { Film } from '../types/film';
 import { Link } from 'react-router-dom';
+import type { Film } from '../types/film';
+import { getFilmImages, getFallbackImage } from '../utilses/imageUtils';
+import { resolveImageUrl } from '../utils/resolveUrl';
 
 interface MovieCardProps {
   film: Film; 
@@ -13,14 +15,24 @@ const MovieCard: React.FC<MovieCardProps> = ({ film }) => {
     return `${hours}ч ${mins}м`;
   };
 
+  // 1) абсолютный URL из бэка, 2) тематическая картинка, 3) встроенная заглушка
+  const preferredPoster = resolveImageUrl(film.posterUrl) || getFilmImages(film.id)?.POSTER;
+  const posterSrc = preferredPoster || getFallbackImage('poster', film.id);
+
   return (
     <div className="group bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
       <Link to={`/film/${film.id}`} className="block">
         <div className="relative overflow-hidden h-80">
           <img 
-            src={film.posterUrl} 
-            alt={film.title} 
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+            src={posterSrc}
+            alt={film.title}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            onError={(e) => {
+              // если сломался URL (например, нет интернета к внешнему хосту) — подменяем на встроенную заглушку
+              e.currentTarget.onerror = null;
+              const backup = getFilmImages(film.id)?.POSTER || getFallbackImage('poster', film.id);
+              e.currentTarget.src = backup;
+            }}
           />
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
@@ -71,8 +83,8 @@ const MovieCard: React.FC<MovieCardProps> = ({ film }) => {
             </div>
             
             <Link
-            to={`/film/${film.id}`}
-            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md"
+              to={`/film/${film.id}`}
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md"
             >
               Купить билет
             </Link>

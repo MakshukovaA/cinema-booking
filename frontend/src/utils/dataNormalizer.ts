@@ -28,11 +28,11 @@ export interface RawFilm {
   releaseYear?: number | string;
   rating?: number | string;
   director?: string;
-  cast?: string[];
+  cast?: string | string[];  // ⬅ Может быть строкой или массивом
   country?: string;
   backgroundImage?: string;
   background_image?: string;
-  gallery?: string[];
+  gallery?: string[] | null;  // ⬅ Может быть null
   movie?: { id?: string | number; title?: string } | string | number;
   film?: { id?: string | number; title?: string } | string | number;
 }
@@ -66,8 +66,8 @@ export interface RawSession {
   priceCategory2?: number | string;
   price_category_2?: number | string;
   price_category2?: number | string;
-  bookedSeats?: string[];
-  booked_seats?: string[];
+  bookedSeats?: string[] | null;
+  booked_seats?: string[] | null;
 }
 
 export interface RawSeat {
@@ -125,11 +125,40 @@ function normalizeGenre(genres: unknown): string {
   return '';
 }
 
+// ⬇ НОВОЕ: Обработка cast (строка или массив)
+function normalizeCast(cast: unknown): string[] {
+  if (Array.isArray(cast)) {
+    return cast.map((item) => safeString(item)).filter(Boolean);
+  }
+  if (typeof cast === 'string' && cast.trim()) {
+    // Разбиваем по запятым и очищаем
+    return cast
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+// ⬇ НОВОЕ: Обработка gallery (может быть null)
+function normalizeGallery(gallery: unknown): string[] {
+  if (Array.isArray(gallery)) {
+    return gallery.map((item) => safeString(item)).filter(Boolean);
+  }
+  return [];
+}
+
+// ⬇ НОВОЕ: Обработка rating (Decimal или number)
+function normalizeRating(rating: unknown): number {
+  if (rating === null || rating === undefined) return 0;
+  const num = Number(rating);
+  return Number.isNaN(num) ? 0 : Math.round(num * 10) / 10; // Округление до 1 знака
+}
+
 // ==================== FILM NORMALIZERS ====================
 
 export function normalizeFilm(data: RawFilm | any): Film {
   if (!data) {
-    console.error('[normalizeFilm] Received null/undefined data');
     return {
       id: '',
       title: 'Неизвестный фильм',
@@ -155,12 +184,12 @@ export function normalizeFilm(data: RawFilm | any): Film {
   const duration = safeNumber(data.duration ?? data.runTime ?? data.length, 0);
   const genre = safeString(data.genre, '') || normalizeGenre(data.genres);
   const year = safeNumber(data.year ?? data.release_year ?? data.releaseYear, 0);
-  const rating = safeNumber(data.rating, 0);
+  const rating = normalizeRating(data.rating);  // ⬅ Используем новую функцию
   const director = safeString(data.director, '');
-  const cast = Array.isArray(data.cast) ? data.cast.map((item: unknown) => safeString(item)) : [];
+  const cast = normalizeCast(data.cast);  // ⬅ Используем новую функцию
   const country = safeString(data.country, '');
   const backgroundImage = safeString(data.backgroundImage ?? data.background_image, '');
-  const gallery = Array.isArray(data.gallery) ? data.gallery.map((item: unknown) => safeString(item)) : [];
+  const gallery = normalizeGallery(data.gallery);  // ⬅ Используем новую функцию
 
   return {
     id,
@@ -181,7 +210,6 @@ export function normalizeFilm(data: RawFilm | any): Film {
 
 export function normalizeFilms(data: RawFilm[] | any[]): Film[] {
   if (!Array.isArray(data)) {
-    console.warn('[normalizeFilms] Expected array, received:', typeof data);
     return [];
   }
   return data.map(normalizeFilm);
@@ -191,7 +219,6 @@ export function normalizeFilms(data: RawFilm[] | any[]): Film[] {
 
 export function normalizeSession(data: RawSession | any): Session {
   if (!data) {
-    console.error('[normalizeSession] Received null/undefined data');
     return {
       id: '',
       filmId: '',
@@ -219,19 +246,23 @@ export function normalizeSession(data: RawSession | any): Session {
     ''
   );
 
+  // ⬅ Обработка hall (строка или объект)
   const hall =
     typeof data.hall === 'object' && data.hall !== null
-      ? safeString(data.hall.name, '')
+      ? safeString((data.hall as { name?: string }).name, '')
       : safeString(data.hall ?? data.hall_name ?? data.venue, '');
 
   const availableSeats = safeNumber(data.availableSeats ?? data.available_seats ?? data.free_seats, 0);
   const totalSeats = safeNumber(data.totalSeats ?? data.total_seats ?? data.seats_total, availableSeats);
+  
+  // ⬅ Цены с дефолтными значениями
   const priceCategory1 = safeNumber(data.priceCategory1 ?? data.price_category_1 ?? data.price_category1, 300);
   const priceCategory2 = safeNumber(data.priceCategory2 ?? data.price_category_2 ?? data.price_category2, 400);
 
+  // ⬅ Обработка bookedSeats (может быть null)
   const bookedSeatsRaw = data.bookedSeats ?? data.booked_seats;
   const bookedSeats = Array.isArray(bookedSeatsRaw)
-    ? bookedSeatsRaw.map((item: unknown) => safeString(item))
+    ? bookedSeatsRaw.map((item: unknown) => safeString(item)).filter(Boolean)
     : [];
 
   return {
@@ -249,7 +280,6 @@ export function normalizeSession(data: RawSession | any): Session {
 
 export function normalizeSessions(data: RawSession[] | any[]): Session[] {
   if (!Array.isArray(data)) {
-    console.warn('[normalizeSessions] Expected array, received:', typeof data);
     return [];
   }
   return data.map(normalizeSession);
@@ -259,7 +289,6 @@ export function normalizeSessions(data: RawSession[] | any[]): Session[] {
 
 export function normalizeSeat(data: RawSeat | any): Seat {
   if (!data) {
-    console.error('[normalizeSeat] Received null/undefined data');
     return {
       id: '',
       row: 0,
@@ -273,13 +302,19 @@ export function normalizeSeat(data: RawSeat | any): Seat {
   const row = safeNumber(data.row, 0);
   const seatNumber = safeNumber(data.number ?? data.seatNumber ?? data.seat_number, 0);
 
+  // ⬅ Определение статуса
   let status: 'available' | 'booked' | 'selected' = 'available';
-  if (data.status === 'booked' || data.is_booked === true) {
+  if (data.is_booked === true) {
+    status = 'booked';
+  } else if (data.status === 'booked') {
     status = 'booked';
   } else if (data.status === 'selected') {
     status = 'selected';
+  } else if (data.is_available === false) {
+    status = 'booked';
   }
 
+  // ⬅ Категория места с дефолтом
   const priceCategory = safeNumber(data.priceCategory ?? data.price_category ?? data.category, 1);
 
   return {
@@ -297,7 +332,6 @@ export function normalizeSeats(
   if (!data) return [];
   const list = Array.isArray(data) ? data : data.seats ?? data.results ?? data.data ?? [];
   if (!Array.isArray(list)) {
-    console.warn('[normalizeSeats] Expected array, received:', typeof data);
     return [];
   }
   return list.map(normalizeSeat);
@@ -311,6 +345,5 @@ export function extractListFromResponse(response: any): any[] {
   if (response?.data && Array.isArray(response.data)) return response.data;
   if (response?.items && Array.isArray(response.items)) return response.items;
   if (response?.seats && Array.isArray(response.seats)) return response.seats;
-  console.warn('[extractListFromResponse] Unknown response format', response);
   return [];
 }

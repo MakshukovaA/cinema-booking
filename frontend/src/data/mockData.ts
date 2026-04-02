@@ -12,6 +12,7 @@ async function fetchReal<T>(url: string): Promise<T> {
     try {
       data = await res.json();
     } catch {
+      // ignore json parse errors
     }
     const err: any = new Error(`API error: ${res.status} ${res.statusText}`);
     err.status = res.status;
@@ -77,6 +78,7 @@ export const mockFilms: Film[] = [
     year: 2014,
     rating: 8.6,
     director: 'Кристофер Нолан',
+    cast: ['Мэттью МакКонахи', 'Энн Хэтэуэй', 'Джессика Честейн'], // добавлено
     country: 'США',
     gallery: getFilmImages('interstellar').GALLERY
   },
@@ -91,7 +93,8 @@ export const mockFilms: Film[] = [
     year: 2010,
     rating: 8.8,
     director: 'Кристофер Нолан',
-    cast: 'Леонардо ДиКаприо, Джозеф Гордон-Левитт, Эллен Пейдж, Том Харди',
+    // раньше была строка — преобразуем в массив
+    cast: ['Леонардо ДиКаприо', 'Джозеф Гордон-Левитт', 'Эллен Пейдж', 'Том Харди'],
     country: 'США, Великобритания',
     gallery: getFilmImages('inception').GALLERY
   },
@@ -105,8 +108,8 @@ export const mockFilms: Film[] = [
     genre: 'Научная фантастика, Приключения',
     year: 2021,
     rating: 8.0,
-    director: 'Дени Вильнё',
-    cast: 'Тимоти Шаламе, Ребекка Фергюсон, Оскар Айзек, Зендея',
+    director: 'Дени Вильнёв',
+    cast: ['Тимоти Шаламе', 'Ребекка Фергюсон', 'Оскар Айзек', 'Зендея'],
     country: 'США, Канада',
     gallery: getFilmImages('dune').GALLERY
   },
@@ -121,7 +124,7 @@ export const mockFilms: Film[] = [
     year: 2008,
     rating: 9.0,
     director: 'Кристофер Нолан',
-    cast: 'Кристиан Бэйл, Хит Леджер, Аарон Экхарт, Мэгги Джилленхол',
+    cast: ['Кристиан Бэйл', 'Хит Леджер', 'Аарон Экхарт', 'Мэгги Джилленхол'],
     country: 'США, Великобритания',
     gallery: getFilmImages('dark-knight').GALLERY
   },

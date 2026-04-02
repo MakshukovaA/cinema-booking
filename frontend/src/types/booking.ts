@@ -1,5 +1,5 @@
 export interface Seat {
-  id: string | number;
+  id: string;
   row: number;
   seatNumber: number;
   status: 'available' | 'booked' | 'occupied' | 'selected';
