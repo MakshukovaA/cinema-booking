@@ -1,22 +1,18 @@
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import viewsets
+from rest_framework.decorators import api_view, action
+from rest_framework.response import Response
 from django.db.models import Count, Sum, Avg, Q
 from django.db.models.functions import TruncDate, ExtractHour, ExtractWeekDay
 from datetime import datetime, timedelta
+
 from apps.bookings.models import Booking
 from apps.movies.models import Movie
 from apps.halls.models import Hall
 from .permissions import IsAdminUser
-from apps.halls.views import HallListCreateView, HallDetailView
-from apps.seats.views import SeatListCreateView, SeatDetailView
-from apps.movies.views import MovieViewSet
-from apps.sessions.views import SessionListCreateView, SessionDetailView
-from apps.pricing.views import PricingListCreateView, PricingDetailView
-from apps.bookings.views import BookingListCreateView, BookingDetailView
-from apps.tickets.views import TicketViewSet
-from apps.users.views import UserListCreateView, UserDetailView
+from apps.bookings.serializers import BookingSerializer
+
+
 class AdminStatsView(APIView):
     permission_classes = [IsAdminUser]
 
@@ -34,7 +30,6 @@ class AdminStatsView(APIView):
             bookings.values('status').annotate(count=Count('id')).values_list('status', 'count')
         )
 
-        bookings_by_day = []
         daily_stats = bookings.annotate(
             date=TruncDate('created_at')
         ).values('date').annotate(
@@ -42,9 +37,10 @@ class AdminStatsView(APIView):
             revenue=Sum('total_price')
         ).order_by('date')
 
+        bookings_by_day = []
         for stat in daily_stats:
             bookings_by_day.append({
-                'date': stat['date'].strftime('%Y-%m-%d'),
+                'date': stat['date'].strftime('%Y-%m-%d') if stat['date'] else None,
                 'count': stat['count'],
                 'revenue': float(stat['revenue'])
             })
@@ -69,7 +65,6 @@ class MovieStatsView(APIView):
         start_date = datetime.now() - timedelta(days=days)
 
         movie_stats = []
-
         movies = Movie.objects.annotate(
             session_count=Count('sessions'),
             booking_count=Count('sessions__bookings', filter=Q(sessions__bookings__created_at__gte=start_date)),
@@ -79,7 +74,6 @@ class MovieStatsView(APIView):
         for movie in movies:
             total_capacity = 0
             total_seats_sold = 0
-
             for session in movie.sessions.all():
                 hall_capacity = session.hall.capacity
                 seats_sold = session.bookings.aggregate(seats=Count('booking_seats'))['seats'] or 0
@@ -110,7 +104,6 @@ class HallStatsView(APIView):
         start_date = datetime.now() - timedelta(days=days)
 
         hall_stats = []
-
         halls = Hall.objects.annotate(
             session_count=Count('sessions', filter=Q(sessions__start_time__gte=start_date)),
             booking_count=Count('sessions__bookings', filter=Q(sessions__bookings__created_at__gte=start_date)),
@@ -120,7 +113,6 @@ class HallStatsView(APIView):
         for hall in halls:
             total_capacity = hall.capacity * hall.session_count if hall.session_count > 0 else 0
             utilization_rate = (hall.booking_count / total_capacity * 100) if total_capacity > 0 else 0
-
             hall_stats.append({
                 'hall_id': hall.id,
                 'hall_name': hall.name,
@@ -134,8 +126,6 @@ class HallStatsView(APIView):
 
 
 class BookingManagementViewSet(viewsets.ModelViewSet):
-    from apps.bookings.serializers import BookingSerializer
-
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
     permission_classes = [IsAdminUser]
@@ -171,17 +161,8 @@ class BookingManagementViewSet(viewsets.ModelViewSet):
 
         bookings = Booking.objects.filter(created_at__gte=start_date)
 
-        hourly_stats = bookings.annotate(
-            hour=ExtractHour('created_at')
-        ).values('hour').annotate(
-            count=Count('id')
-        ).order_by('hour')
-
-        weekday_stats = bookings.annotate(
-            weekday=ExtractWeekDay('created_at')
-        ).values('weekday').annotate(
-            count=Count('id')
-        ).order_by('weekday')
+        hourly_stats = bookings.annotate(hour=ExtractHour('created_at')).values('hour').annotate(count=Count('id')).order_by('hour')
+        weekday_stats = bookings.annotate(weekday=ExtractWeekDay('created_at')).values('weekday').annotate(count=Count('id')).order_by('weekday')
 
         return Response({
             'hourly_distribution': list(hourly_stats),

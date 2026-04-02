@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Movie
 
 class FilmSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True) 
     filmId = serializers.IntegerField(source='id', read_only=True)
     year = serializers.SerializerMethodField()
     posterUrl = serializers.CharField(source='poster_url', read_only=True, allow_blank=True)
@@ -15,6 +16,7 @@ class FilmSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = [
+            'id',
             'filmId',
             'title',
             'duration',
@@ -30,7 +32,6 @@ class FilmSerializer(serializers.ModelSerializer):
             'cast',
             'country',
         ]
-
     def get_year(self, obj):
         return obj.release_date.year if obj.release_date else None
 

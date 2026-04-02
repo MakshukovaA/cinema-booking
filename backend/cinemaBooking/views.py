@@ -3,11 +3,13 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from django.urls import NoReverseMatch
 
+
 def safe_reverse(name, request, format):
     try:
         return reverse(name, request=request, format=format)
     except NoReverseMatch:
         return None
+
 
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -20,7 +22,6 @@ def api_root(request, format=None):
         'bookings': safe_reverse('booking-list', request, format),
         'tickets': safe_reverse('ticket-list', request, format),
         'users': safe_reverse('user-list', request, format),
-
         'token_obtain_pair': safe_reverse('token_obtain_pair', request, format),
         'token_refresh': safe_reverse('token_refresh', request, format),
     }

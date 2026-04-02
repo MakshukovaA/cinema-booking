@@ -7,13 +7,6 @@ class BookingStatsSerializer(serializers.Serializer):
     bookings_by_status = serializers.DictField()
     bookings_by_day = serializers.ListField()
 
-class MovieStatsSerializer(serializers.Serializer):
-    movie_id = serializers.IntegerField()
-    movie_title = serializers.CharField()
-    total_sessions = serializers.IntegerField()
-    total_bookings = serializers.IntegerField()
-    total_revenue = serializers.DecimalField(max_digits=10, decimal_places=2)
-    average_occupancy = serializers.FloatField()
 
 class HallStatsSerializer(serializers.Serializer):
     hall_id = serializers.IntegerField()

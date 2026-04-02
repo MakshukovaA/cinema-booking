@@ -44,13 +44,15 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://localhost:8000/api
+        REACT_APP_WS_URL: ws://localhost:8000
+        REACT_APP_USE_REAL_API: true
     container_name: cinema_frontend
     depends_on:
       - backend
-    environment:
-      REACT_APP_API_URL: http://localhost:8000/api
-      REACT_APP_WS_URL: ws://localhost:8000
-      REACT_APP_USE_REAL_API: "true"
+    env_file:
+      - .env
     ports:
       - "3000:3000"
     networks:

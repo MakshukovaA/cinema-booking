@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+
 @api_view(['GET'])
 def api_root(request):
     return Response({
@@ -17,6 +18,7 @@ def api_root(request):
         'token': '/api/token/',
         'token_refresh': '/api/token/refresh/',
     })
+
 
 urlpatterns = [
     path('', api_root, name='api-root'),
