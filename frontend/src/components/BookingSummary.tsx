@@ -32,7 +32,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           <ul className="list-disc list-inside text-sm text-gray-700 mt-2">
             {selectedSeats.map((seat) => (
               <li key={seat.id}>
-                {seat.row}{seat.seatNumber} (Цена: {seat.priceCategory === 1 ? 'Цена 1' : 'Цена 2'})
+                {`Ряд ${seat.row}, Место ${seat.seatNumber}`} (Цена: {seat.priceCategory === 1 ? 'Стандарт (800 ₽)' : 'VIP (1200 ₽)'})
               </li>
             ))}
           </ul>

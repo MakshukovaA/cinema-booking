@@ -1,112 +1,67 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { normalizeFilm, normalizeSessions, extractListFromResponse } from '../utils/dataNormalizer';
-import { apiJson } from '../utils/api';
 import type { Film } from '../types/film';
 import type { Session } from '../types/session';
 
-export default function FilmPage() {
-  const { id } = useParams<{ id: string }>();
+async function fetchJsonWithStatus(url: string) {
+  const res = await fetch(url, { credentials: 'same-origin' });
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {}
+  return { status: res.status, ok: res.ok, data };
+}
 
+export default function FilmPage() {
+  const { filmId } = useParams<{ filmId: string }>(); 
   const [film, setFilm] = useState<Film | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadFilmData() {
-      if (!id) {
-        setError('Фильм не найден');
+    async function load() {
+      if (!filmId) {
+        setError('Фильм не найден (нет id в url)');
         setLoading(false);
         return;
       }
 
-      try {
-        setLoading(true);
-        setError(null);
-
-        const filmData = await apiJson(`/movies/${id}/`);
-        const normalizedFilm = normalizeFilm(filmData);
-        setFilm(normalizedFilm);
-
-        try {
-          const sessionsData = await apiJson(`/sessions/`);
-          const sessionsList = extractListFromResponse(sessionsData);
-          const normalized = normalizeSessions(sessionsList);
-
-          const filtered = normalized.filter(
-            (session) => String(session.filmId) === String(id)
-          );
-
-          setSessions(filtered);
-        } catch (sessionsError) {
-          console.warn('Failed to load sessions:', sessionsError);
-          setSessions([]);
-        }
-      } catch (err) {
-        console.error('Failed to load film data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load film');
-      } finally {
+      const movieResp = await fetchJsonWithStatus(`/api/movies/${filmId}/`);
+      if (!movieResp.ok) {
+        setError(`Ошибка ${movieResp.status}`);
         setLoading(false);
+        return;
       }
+
+      const normalizedFilm = normalizeFilm(movieResp.data);
+      setFilm(normalizedFilm);
+
+      const sessionsResp = await fetchJsonWithStatus(`/api/sessions/?film=${filmId}`);
+      if (sessionsResp.ok) {
+        const list = extractListFromResponse(sessionsResp.data);
+        const normalizedSessions = normalizeSessions(list);
+        setSessions(normalizedSessions.filter(s => String(s.filmId) === String(filmId)));
+      }
+      setLoading(false);
     }
+    load();
+  }, [filmId]);
 
-    loadFilmData();
-  }, [id]);
-
-  if (loading) return <div className="loading">Загрузка...</div>;
+  if (loading) return <div>Загрузка…</div>;
   if (error) return <div className="error">{error}</div>;
-  if (!film) return <div className="error">Фильм не найден</div>;
+  if (!film) return <div>Фильм не найден</div>;
 
   return (
     <div className="film-page">
-      <div className="film-header">
-        <img src={film.posterUrl} alt={film.title} />
-        <div className="film-info">
-          <h1>{film.title}</h1>
-          <p className="genre">{film.genre}</p>
-          <p className="year">{film.year}</p>
-          <p className="duration">{film.duration} мин.</p>
-          {film.rating ? <p className="rating">Рейтинг: {film.rating}</p> : null}
-          {film.director ? <p className="director">Режиссёр: {film.director}</p> : null}
-          {film.country ? <p className="country">Страна: {film.country}</p> : null}
+      <h1>{film.title}</h1>
+      {sessions.map(s => (
+        <div key={s.id}>
+          {s.startTime} — Зал {s.hall}{' '}
+          <Link to={`/booking/${s.id}`}>Забронировать</Link>
         </div>
-      </div>
-
-      {film.description ? (
-        <div className="film-description">
-          <h2>Описание</h2>
-          <p>{film.description}</p>
-        </div>
-      ) : null}
-
-      {sessions.length > 0 ? (
-        <div className="sessions-section">
-          <h2>Сеансы</h2>
-          <div className="sessions-list">
-            {sessions.map((session) => (
-              <div key={session.id} className="session-card">
-                <div className="session-time">{session.startTime}</div>
-                <div className="session-hall">Зал: {session.hall}</div>
-                <div className="session-seats">
-                  Свободно: {session.availableSeats} из {session.totalSeats}
-                </div>
-                <div className="session-price">
-                  {session.priceCategory1} ₽ - {session.priceCategory2} ₽
-                </div>
-                <Link to={`/booking/${session.id}`} className="session-book-button">
-                  Забронировать
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="sessions-section">
-          <h2>Сеансы</h2>
-          <p>Для этого фильма пока нет доступных сеансов.</p>
-        </div>
-      )}
+      ))}
     </div>
   );
 }

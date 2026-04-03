@@ -5,7 +5,7 @@ export type Session = {
   hall: string;
   availableSeats: number;
   totalSeats: number;
-  bookedSeats: string[]; // ["row-number", ...]
+  bookedSeats: string[]; 
   priceCategory1: number;
   priceCategory2: number;
 };

@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from apps.sessions.models import Session
 from apps.seats.models import Seat
 from apps.pricing.models import Pricing
+from rest_framework import status
 from .serializers import SessionFrontendSerializer, HallLayoutSerializer
 
 
@@ -66,33 +67,29 @@ class SessionDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SessionFrontendSerializer
     lookup_field = 'pk'
 
-
 class AvailableSeatsView(APIView):
     def get(self, request, pk):
         session = Session.objects.filter(pk=pk).first()
         if not session:
-            return Response({'error': 'Session not found'}, status=404)
+            return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        hall = getattr(session, 'hall', None)
-        if hall:
-            total = getattr(hall, 'capacity', None)
-            if total is None:
-                rows = getattr(hall, 'rows', 0) or 0
-                cols = getattr(hall, 'cols', 0) or 0
-                total = rows * cols
-        else:
-            total = 0
+        hall = session.hall
+        if not hall:
+            return Response([], status=status.HTTP_200_OK)
 
-        booked = []
-        tickets = getattr(session, 'tickets', None)
-        if tickets:
-            for ticket in tickets.all():
-                seat = getattr(ticket, 'seat', None)
-                if seat:
-                    booked.append(f"{seat.row}-{seat.number}")
+        pricing_by_type = {p.seat_type: p.price for p in Pricing.objects.all()}
+        seats_qs = Seat.objects.filter(hall=hall).order_by('row', 'number')
 
-        available = (total - len(booked)) if total is not None else 0
-        if available < 0:
-            available = 0
+        result = []
+        for seat in seats_qs:
+            status_str = "booked" if session.tickets.filter(seat=seat).exists() else "free"
+            price_cat = 1 if pricing_by_type.get(seat.seat_type, 0) == session.price else 2
+            result.append({
+                "id": seat.id,
+                "row": seat.row,
+                "number": seat.number,
+                "status": status_str,
+                "priceCategory": price_cat
+            })
 
-        return Response({'availableSeats': available})
+        return Response(result)

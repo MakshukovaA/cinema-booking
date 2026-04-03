@@ -1,37 +1,27 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import type { Session } from '../types/session';
+import SessionItem from './SessionItem';
 
 interface SessionListProps {
   sessions: Session[];
+  filmId?: string;
 }
 
-const formatDateTime = (iso?: string) => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return isNaN(d.getTime()) ? '' : d.toLocaleString('ru-RU');
-};
-
-const SessionList: React.FC<SessionListProps> = ({ sessions }) => {
+const SessionList: React.FC<SessionListProps> = ({ sessions, filmId }) => {
   if (!sessions || sessions.length === 0) {
-    return <div className="text-center text-gray-500">Сеансы не найдены</div>;
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500 text-lg">Сеансы не найдены</p>
+        <p className="text-gray-400 text-sm mt-2">Попробуйте выбрать другую дату</p>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-4">
-      {sessions.map((s) => (
-        <div key={s.id} className="flex items-center justify-between p-4 border rounded-lg">
-          <div>
-            <div className="text-sm font-semibold">{formatDateTime(s.startTime)}</div>
-            <div className="text-xs text-gray-500">Зал: {s.hall}</div>
-          </div>
-          <Link
-            to={`/booking/${s.id}`}
-            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg"
-          >
-            Забронировать
-          </Link>
-        </div>
+    <div className="space-y-3">
+      <h3 className="text-lg font-semibold text-gray-700 mb-4">Расписание сеансов</h3>
+      {sessions.map((session) => (
+        <SessionItem key={session.id} session={session} filmId={filmId} />
       ))}
     </div>
   );

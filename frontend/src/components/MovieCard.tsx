@@ -5,7 +5,7 @@ import { getFilmImages, getFallbackImage } from '../utilses/imageUtils';
 import { resolveImageUrl } from '../utils/resolveUrl';
 
 interface MovieCardProps {
-  film: Film; 
+  film: Film;
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({ film }) => {
@@ -15,24 +15,26 @@ const MovieCard: React.FC<MovieCardProps> = ({ film }) => {
     return `${hours}ч ${mins}м`;
   };
 
-  // 1) абсолютный URL из бэка, 2) тематическая картинка, 3) встроенная заглушка
-  const preferredPoster = resolveImageUrl(film.posterUrl) || getFilmImages(film.id)?.POSTER;
-  const posterSrc = preferredPoster || getFallbackImage('poster', film.id);
+  const preferredPoster =
+    resolveImageUrl(film.posterUrl) ||
+    getFilmImages(film.id)?.POSTER ||
+    getFallbackImage('poster', film.id);
+
+  const handlePosterError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src =
+      getFilmImages(film.id)?.POSTER || getFallbackImage('poster', film.id);
+  };
 
   return (
     <div className="group bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
       <Link to={`/film/${film.id}`} className="block">
         <div className="relative overflow-hidden h-80">
-          <img 
-            src={posterSrc}
+          <img
+            src={preferredPoster}
             alt={film.title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            onError={(e) => {
-              // если сломался URL (например, нет интернета к внешнему хосту) — подменяем на встроенную заглушку
-              e.currentTarget.onerror = null;
-              const backup = getFilmImages(film.id)?.POSTER || getFallbackImage('poster', film.id);
-              e.currentTarget.src = backup;
-            }}
+            onError={handlePosterError}
           />
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
@@ -58,8 +60,8 @@ const MovieCard: React.FC<MovieCardProps> = ({ film }) => {
           
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <span className="text-gray-600 text-sm">
-                <span className="font-semibold">{formatDuration(film.duration)}</span>
+              <span className="text-gray-600 text-sm font-semibold">
+                {formatDuration(film.duration)}
               </span>
               <span className="text-gray-400">•</span>
               <span className="text-sm text-gray-500">{film.genre}</span>
@@ -77,13 +79,10 @@ const MovieCard: React.FC<MovieCardProps> = ({ film }) => {
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-xs text-gray-500">
-                {film.duration} мин
-              </span>
+              <span className="text-xs text-gray-500">{film.duration} мин</span>
             </div>
-            
             <Link
-              to={`/film/${film.id}`}
+              to={`/sessions/${film.id}`} 
               className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-md"
             >
               Купить билет

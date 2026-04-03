@@ -2,10 +2,10 @@ import React from 'react';
 
 const SeatLegend: React.FC = () => {
   const legendItems = [
-    { color: 'bg-green-300', label: 'Свободно' },
-    { color: 'bg-blue-300', label: 'Зарезервировано' },
-    { color: 'bg-gray-300', label: 'Занято' },
-    { color: 'bg-green-600', label: 'Выбрано' },
+    { color: 'bg-gradient-to-br from-green-400 to-green-600', label: 'Стандарт (800 ₽)' },
+    { color: 'bg-gradient-to-br from-blue-400 to-blue-600', label: 'VIP (1200 ₽)' },
+    { color: 'bg-gradient-to-br from-purple-500 to-purple-700', label: 'Выбрано' },
+    { color: 'bg-gradient-to-br from-gray-400 to-gray-600', label: 'Занято' },
   ];
 
   return (

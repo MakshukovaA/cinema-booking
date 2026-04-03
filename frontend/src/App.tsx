@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import HomePage from './pages/HomePage';
 import FilmPage from './pages/FilmPage';
 import BookingPage from './pages/BookingPage';
+import SessionListPage from './pages/SessionListPage'; 
 import LoginForm from './components/LoginForm';
 import MainLayout from './layouts/MainLayout';
 
@@ -13,7 +14,8 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/film/:filmId" element={<FilmPage />} />
-          <Route path="/booking/:sessionId?" element={<BookingPage />} />
+          <Route path="/sessions/:filmId" element={<SessionListPage />} /> 
+          <Route path="/booking/:sessionId" element={<BookingPage />} />
         </Route>
         <Route path="/login" element={<LoginForm />} />
         <Route path="*" element={<Navigate to="/" />} />
@@ -21,4 +23,5 @@ function App() {
     </Router>
   );
 }
+
 export default App;
