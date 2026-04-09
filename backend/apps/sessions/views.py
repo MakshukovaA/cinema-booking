@@ -1,4 +1,4 @@
-from rest_framework import generics, viewsets
+from rest_framework import generics, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from apps.sessions.models import Session
 from apps.seats.models import Seat
 from apps.pricing.models import Pricing
-from rest_framework import status
+from apps.tickets.models import Ticket
 from .serializers import SessionFrontendSerializer, HallLayoutSerializer
 
 
@@ -16,17 +16,16 @@ def build_session_layout(session: Session) -> dict:
     seatsPerRow = {row: getattr(hall, 'cols', 0) for row in rows}
 
     bookedSeats = []
-    tickets = getattr(session, 'tickets', None)
-    if tickets:
-        for ticket in tickets.all():
-            seat = getattr(ticket, 'seat', None)
-            if seat:
-                bookedSeats.append(f"{seat.row}-{seat.number}")
+    tickets = Ticket.objects.filter(session=session).select_related('seat')
+    for ticket in tickets:
+        seat = getattr(ticket, 'seat', None)
+        if seat:
+            bookedSeats.append(f"{seat.row}-{seat.number}")
 
     occupiedSeats = []
 
     priceMap = {}
-    pricing_by_type = {p.seat_type: p.price for p in Pricing.objects.all()}
+    pricing_by_type = {p.name: float(p.price) for p in Pricing.objects.all()}
 
     for row in rows:
         priceMap[row] = {}
@@ -46,8 +45,14 @@ def build_session_layout(session: Session) -> dict:
 
 
 class SessionViewSet(viewsets.ModelViewSet):
-    queryset = Session.objects.all()
     serializer_class = SessionFrontendSerializer
+
+    def get_queryset(self):
+        qs = Session.objects.all().select_related('movie', 'hall').order_by('start_time', 'id')
+        film_id = self.request.query_params.get('film')
+        if film_id:
+            qs = qs.filter(movie_id=film_id)
+        return qs
 
     @action(detail=True, methods=['get'], url_path='layout')
     def layout(self, request, pk=None):
@@ -58,8 +63,14 @@ class SessionViewSet(viewsets.ModelViewSet):
 
 
 class SessionListCreateView(generics.ListCreateAPIView):
-    queryset = Session.objects.all()
     serializer_class = SessionFrontendSerializer
+
+    def get_queryset(self):
+        queryset = Session.objects.all().select_related('movie', 'hall').order_by('start_time', 'id')
+        film_id = self.request.query_params.get('film')
+        if film_id:
+            queryset = queryset.filter(movie_id=film_id)
+        return queryset
 
 
 class SessionDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -69,7 +80,7 @@ class SessionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class AvailableSeatsView(APIView):
     def get(self, request, pk):
-        session = Session.objects.filter(pk=pk).first()
+        session = Session.objects.filter(pk=pk).select_related('hall').first()
         if not session:
             return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -77,19 +88,35 @@ class AvailableSeatsView(APIView):
         if not hall:
             return Response([], status=status.HTTP_200_OK)
 
-        pricing_by_type = {p.seat_type: p.price for p in Pricing.objects.all()}
+        pricing_by_type = {p.name: float(p.price) for p in Pricing.objects.all()}
+
         seats_qs = Seat.objects.filter(hall=hall).order_by('row', 'number')
+
+        booked_seat_ids = set(
+            Ticket.objects.filter(session=session, seat__isnull=False)
+            .values_list('seat_id', flat=True)
+        )
 
         result = []
         for seat in seats_qs:
-            status_str = "booked" if session.tickets.filter(seat=seat).exists() else "free"
-            price_cat = 1 if pricing_by_type.get(seat.seat_type, 0) == session.price else 2
+            status_str = "booked" if seat.id in booked_seat_ids else "available"
+            seat_type = getattr(seat, 'seat_type', None)
+            seat_price = pricing_by_type.get(seat_type, 0.0)
+            base_price = float(getattr(session, 'price', 0) or 0)
+
+            if base_price and seat_price == base_price:
+                price_cat = 1
+            elif base_price and seat_price > base_price:
+                price_cat = 2
+            else:
+                price_cat = 1 if seat_type == 'standard' else 2
+
             result.append({
                 "id": seat.id,
                 "row": seat.row,
-                "number": seat.number,
+                "seatNumber": seat.number,
                 "status": status_str,
-                "priceCategory": price_cat
+                "priceCategory": price_cat,
             })
 
-        return Response(result)
+        return Response(result, status=status.HTTP_200_OK)

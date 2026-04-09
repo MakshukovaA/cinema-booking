@@ -21,3 +21,6 @@ class Session(models.Model):
 
     def __str__(self):
         return f'{self.movie.title} in {self.hall.name} at {self.start_time}'
+
+    class Meta:
+        ordering = ['start_time', 'id']

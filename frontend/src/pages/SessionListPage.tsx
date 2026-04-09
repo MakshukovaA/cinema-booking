@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiJson } from '../utils/api';
-import { normalizeSession } from '../utils/dataNormalizer';
+import { normalizeSession, extractListFromResponse } from '../utils/dataNormalizer';
 import type { Session } from '../types/session';
 import SessionList from '../components/SessionList';
 
@@ -24,18 +24,13 @@ export default function SessionListPage() {
         setLoading(true);
         setError(null);
 
-        const filmData = await apiJson(`/movies/${filmId}/`);
+        const filmData = await apiJson(`/api/movies/${filmId}/`);
         setFilmTitle(filmData.title || `Фильм #${filmId}`);
 
-        const sessionsData = await apiJson(`/sessions/?film=${filmId}`);
-        const sessionsList = Array.isArray(sessionsData) 
-          ? sessionsData 
-          : Array.isArray((sessionsData as any).results) 
-            ? (sessionsData as any).results 
-            : [];
-
+        const sessionsData = await apiJson(`/api/sessions/?film=${filmId}`);
+        const sessionsList = extractListFromResponse(sessionsData);
         const normalizedSessions = sessionsList.map(normalizeSession);
-        setSessions(normalizedSessions);
+        setSessions(normalizedSessions.filter((s) => String(s.filmId) === String(filmId)));
       } catch (err) {
         console.error('Failed to load sessions:', err);
         setError(err instanceof Error ? err.message : 'Ошибка загрузки сеансов');

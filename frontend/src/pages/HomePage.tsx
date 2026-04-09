@@ -13,33 +13,27 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const loadFromApi = async () => {
       try {
-        const data: any = await apiJson('/movies/');
+        const data = await apiJson('/api/movies/');
         const list = extractListFromResponse(data);
         const normalized = normalizeFilms(list);
 
         if (normalized.length > 0) {
           setFilms(normalized);
+          setError(null);
         } else {
           const mock = await fetchFilms();
-          if (Array.isArray(mock)) {
-            setFilms(mock);
-            setError('Не удалось загрузить фильмы через API. Показаны мок-данные.');
-          } else {
-            setFilms([]);
-          }
+          setFilms(Array.isArray(mock) ? mock : []);
+          setError('Не удалось загрузить фильмы через API. Показаны мок-данные.');
         }
       } catch (err) {
         console.error('Error loading films from API:', err);
 
         try {
           const mock = await fetchFilms();
-          if (Array.isArray(mock)) {
-            setFilms(mock);
-            setError('Не удалось загрузить фильмы через API. Показаны мок-данные.');
-          } else {
-            setFilms([]);
-          }
+          setFilms(Array.isArray(mock) ? mock : []);
+          setError('Не удалось загрузить фильмы через API. Показаны мок-данные.');
         } catch {
+          setFilms([]);
           setError('Не удалось загрузить фильмы.');
         }
       } finally {

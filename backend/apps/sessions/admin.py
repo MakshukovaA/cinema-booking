@@ -28,4 +28,5 @@ class SessionAdmin(admin.ModelAdmin):
     list_display = ('movie', 'hall', 'start_time', 'price')
     list_filter = ('movie__title', 'hall__name', 'start_time')
     search_fields = ('movie__title', 'hall__name')
+    ordering = ('start_time', 'id')
     actions = [export_sessions_csv]

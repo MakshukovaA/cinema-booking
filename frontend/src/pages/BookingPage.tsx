@@ -32,13 +32,14 @@ export default function BookingPage() {
       try {
         setLoading(true);
         setError(null);
-        const sessionData = await apiJson(`/sessions/${sessionId}/`);
+
+        const sessionData = await apiJson(`/api/sessions/${sessionId}/`);
         const normalizedSession = normalizeSession(sessionData);
         setSession(normalizedSession);
 
         if (normalizedSession.filmId) {
           try {
-            const filmData = await apiJson(`/movies/${normalizedSession.filmId}/`);
+            const filmData = await apiJson(`/api/movies/${normalizedSession.filmId}/`);
             setFilmTitle(filmData.title || `Фильм #${normalizedSession.filmId}`);
           } catch {
             setFilmTitle(`Фильм #${normalizedSession.filmId}`);
@@ -46,7 +47,7 @@ export default function BookingPage() {
         }
 
         try {
-          const seatsResponse = await apiFetch(`/sessions/${sessionId}/available-seats/`);
+          const seatsResponse = await apiFetch(`/api/sessions/${sessionId}/available-seats/`);
           if (seatsResponse.ok) {
             const seatsData = await seatsResponse.json();
             const seatsList = extractListFromResponse(seatsData);
@@ -62,7 +63,7 @@ export default function BookingPage() {
         }
       } catch (err) {
         console.error('Failed to load booking data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load booking');
+        setError(err instanceof Error ? err.message : 'Ошибка загрузки бронирования');
       } finally {
         setLoading(false);
       }
@@ -102,7 +103,7 @@ export default function BookingPage() {
         phone: userPhone,
       };
 
-      const res = await apiFetch('/bookings/', {
+      const res = await apiFetch('/api/bookings/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -138,6 +139,7 @@ export default function BookingPage() {
   return (
     <div className="booking-page max-w-4xl mx-auto p-4">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Бронирование билетов</h1>
+
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <p><strong>Фильм:</strong> {filmTitle}</p>
         <p><strong>Сеанс:</strong> {session.startTime}</p>
@@ -154,7 +156,7 @@ export default function BookingPage() {
       <SeatLegend />
 
       <BookingSummary
-        selectedSeats={seats.filter(s => selectedSeats.includes(String(s.id)))}
+        selectedSeats={seats.filter((s) => selectedSeats.includes(String(s.id)))}
         totalPrice={totalPrice}
         filmTitle={filmTitle}
         sessionTime={session.startTime}
@@ -163,7 +165,7 @@ export default function BookingPage() {
 
       <BookingForm
         onSubmit={handleBookingSubmit}
-        selectedSeats={seats.filter(s => selectedSeats.includes(String(s.id)))}
+        selectedSeats={seats.filter((s) => selectedSeats.includes(String(s.id)))}
         isSubmitting={isSubmitting}
       />
     </div>

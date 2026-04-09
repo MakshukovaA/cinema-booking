@@ -2,12 +2,12 @@ import type { Film } from '../types/film';
 import type { Session } from '../types/session';
 import type { Seat } from '../types/booking';
 
-// ==================== RAW API TYPES ====================
-
 export interface RawFilm {
   id?: string | number;
+  pk?: string | number;
   filmId?: string | number;
   movieId?: string | number;
+  movie_id?: string | number;
   title?: string;
   name?: string;
   posterUrl?: string;
@@ -28,21 +28,23 @@ export interface RawFilm {
   releaseYear?: number | string;
   rating?: number | string;
   director?: string;
-  cast?: string | string[];  // ⬅ Может быть строкой или массивом
+  cast?: string | string[];
   country?: string;
   backgroundImage?: string;
   background_image?: string;
-  gallery?: string[] | null;  // ⬅ Может быть null
+  gallery?: string[] | null;
   movie?: { id?: string | number; title?: string } | string | number;
   film?: { id?: string | number; title?: string } | string | number;
 }
 
 export interface RawSession {
   id?: string | number;
+  pk?: string | number;
   session_id?: string | number;
   sessionId?: string | number;
   filmId?: string | number;
   film_id?: string | number;
+  movieId?: string | number;
   movie_id?: string | number;
   movie?: { id?: string | number; title?: string } | string | number;
   film?: { id?: string | number; title?: string } | string | number;
@@ -72,6 +74,7 @@ export interface RawSession {
 
 export interface RawSeat {
   id?: string | number;
+  pk?: string | number;
   seat_id?: string | number;
   seatId?: string | number;
   row?: number | string;
@@ -85,8 +88,6 @@ export interface RawSeat {
   price_category?: number | string;
   category?: number | string;
 }
-
-// ==================== HELPERS ====================
 
 function safeString(value: unknown, fallback = ''): string {
   if (value === null || value === undefined) return fallback;
@@ -125,13 +126,11 @@ function normalizeGenre(genres: unknown): string {
   return '';
 }
 
-// ⬇ НОВОЕ: Обработка cast (строка или массив)
 function normalizeCast(cast: unknown): string[] {
   if (Array.isArray(cast)) {
     return cast.map((item) => safeString(item)).filter(Boolean);
   }
   if (typeof cast === 'string' && cast.trim()) {
-    // Разбиваем по запятым и очищаем
     return cast
       .split(',')
       .map((item) => item.trim())
@@ -140,7 +139,6 @@ function normalizeCast(cast: unknown): string[] {
   return [];
 }
 
-// ⬇ НОВОЕ: Обработка gallery (может быть null)
 function normalizeGallery(gallery: unknown): string[] {
   if (Array.isArray(gallery)) {
     return gallery.map((item) => safeString(item)).filter(Boolean);
@@ -148,14 +146,11 @@ function normalizeGallery(gallery: unknown): string[] {
   return [];
 }
 
-// ⬇ НОВОЕ: Обработка rating (Decimal или number)
 function normalizeRating(rating: unknown): number {
   if (rating === null || rating === undefined) return 0;
   const num = Number(rating);
-  return Number.isNaN(num) ? 0 : Math.round(num * 10) / 10; // Округление до 1 знака
+  return Number.isNaN(num) ? 0 : Math.round(num * 10) / 10;
 }
-
-// ==================== FILM NORMALIZERS ====================
 
 export function normalizeFilm(data: RawFilm | any): Film {
   if (!data) {
@@ -171,7 +166,13 @@ export function normalizeFilm(data: RawFilm | any): Film {
   }
 
   const id = safeString(
-    data.id ?? data.filmId ?? data.movieId ?? data.movie_id ?? extractEntityId(data.movie) ?? extractEntityId(data.film),
+    data.id ??
+      data.pk ??
+      data.filmId ??
+      data.movieId ??
+      data.movie_id ??
+      extractEntityId(data.movie) ??
+      extractEntityId(data.film),
     ''
   );
 
@@ -184,12 +185,12 @@ export function normalizeFilm(data: RawFilm | any): Film {
   const duration = safeNumber(data.duration ?? data.runTime ?? data.length, 0);
   const genre = safeString(data.genre, '') || normalizeGenre(data.genres);
   const year = safeNumber(data.year ?? data.release_year ?? data.releaseYear, 0);
-  const rating = normalizeRating(data.rating);  // ⬅ Используем новую функцию
+  const rating = normalizeRating(data.rating);
   const director = safeString(data.director, '');
-  const cast = normalizeCast(data.cast);  // ⬅ Используем новую функцию
+  const cast = normalizeCast(data.cast);
   const country = safeString(data.country, '');
   const backgroundImage = safeString(data.backgroundImage ?? data.background_image, '');
-  const gallery = normalizeGallery(data.gallery);  // ⬅ Используем новую функцию
+  const gallery = normalizeGallery(data.gallery);
 
   return {
     id,
@@ -209,13 +210,9 @@ export function normalizeFilm(data: RawFilm | any): Film {
 }
 
 export function normalizeFilms(data: RawFilm[] | any[]): Film[] {
-  if (!Array.isArray(data)) {
-    return [];
-  }
+  if (!Array.isArray(data)) return [];
   return data.map(normalizeFilm);
 }
-
-// ==================== SESSION NORMALIZERS ====================
 
 export function normalizeSession(data: RawSession | any): Session {
   if (!data) {
@@ -232,10 +229,12 @@ export function normalizeSession(data: RawSession | any): Session {
     } as Session;
   }
 
-  const id = safeString(data.id ?? data.session_id ?? data.sessionId, '');
+  const id = safeString(data.id ?? data.pk ?? data.session_id ?? data.sessionId, '');
+
   const filmId =
     safeString(data.filmId, '') ||
     safeString(data.film_id, '') ||
+    safeString(data.movieId, '') ||
     safeString(data.movie_id, '') ||
     extractEntityId(data.movie) ||
     extractEntityId(data.film) ||
@@ -246,7 +245,6 @@ export function normalizeSession(data: RawSession | any): Session {
     ''
   );
 
-  // ⬅ Обработка hall (строка или объект)
   const hall =
     typeof data.hall === 'object' && data.hall !== null
       ? safeString((data.hall as { name?: string }).name, '')
@@ -254,12 +252,9 @@ export function normalizeSession(data: RawSession | any): Session {
 
   const availableSeats = safeNumber(data.availableSeats ?? data.available_seats ?? data.free_seats, 0);
   const totalSeats = safeNumber(data.totalSeats ?? data.total_seats ?? data.seats_total, availableSeats);
-  
-  // ⬅ Цены с дефолтными значениями
   const priceCategory1 = safeNumber(data.priceCategory1 ?? data.price_category_1 ?? data.price_category1, 300);
   const priceCategory2 = safeNumber(data.priceCategory2 ?? data.price_category_2 ?? data.price_category2, 400);
 
-  // ⬅ Обработка bookedSeats (может быть null)
   const bookedSeatsRaw = data.bookedSeats ?? data.booked_seats;
   const bookedSeats = Array.isArray(bookedSeatsRaw)
     ? bookedSeatsRaw.map((item: unknown) => safeString(item)).filter(Boolean)
@@ -279,13 +274,9 @@ export function normalizeSession(data: RawSession | any): Session {
 }
 
 export function normalizeSessions(data: RawSession[] | any[]): Session[] {
-  if (!Array.isArray(data)) {
-    return [];
-  }
+  if (!Array.isArray(data)) return [];
   return data.map(normalizeSession);
 }
-
-// ==================== SEAT NORMALIZERS ====================
 
 export function normalizeSeat(data: RawSeat | any): Seat {
   if (!data) {
@@ -298,23 +289,17 @@ export function normalizeSeat(data: RawSeat | any): Seat {
     } as Seat;
   }
 
-  const id = safeString(data.id ?? data.seat_id ?? data.seatId, '');
+  const id = safeString(data.id ?? data.pk ?? data.seat_id ?? data.seatId, '');
   const row = safeNumber(data.row, 0);
   const seatNumber = safeNumber(data.number ?? data.seatNumber ?? data.seat_number, 0);
 
-  // ⬅ Определение статуса
   let status: 'available' | 'booked' | 'selected' = 'available';
-  if (data.is_booked === true) {
-    status = 'booked';
-  } else if (data.status === 'booked') {
+  if (data.is_booked === true || data.status === 'booked' || data.is_available === false) {
     status = 'booked';
   } else if (data.status === 'selected') {
     status = 'selected';
-  } else if (data.is_available === false) {
-    status = 'booked';
   }
 
-  // ⬅ Категория места с дефолтом
   const priceCategory = safeNumber(data.priceCategory ?? data.price_category ?? data.category, 1);
 
   return {
@@ -331,13 +316,9 @@ export function normalizeSeats(
 ): Seat[] {
   if (!data) return [];
   const list = Array.isArray(data) ? data : data.seats ?? data.results ?? data.data ?? [];
-  if (!Array.isArray(list)) {
-    return [];
-  }
+  if (!Array.isArray(list)) return [];
   return list.map(normalizeSeat);
 }
-
-// ==================== API RESPONSE HELPERS ====================
 
 export function extractListFromResponse(response: any): any[] {
   if (Array.isArray(response)) return response;
