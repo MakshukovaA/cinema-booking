@@ -55,11 +55,11 @@ export default function BookingPage() {
             setSeats(normalizedSeats);
           } else {
             console.warn('Available seats endpoint not available:', seatsResponse.status);
-            setSeats([]);
+            setSeats(normalizeSeats([]));
           }
         } catch (seatsError) {
           console.warn('Failed to load seats:', seatsError);
-          setSeats([]);
+          setSeats(normalizeSeats([]));
         }
       } catch (err) {
         console.error('Failed to load booking data:', err);

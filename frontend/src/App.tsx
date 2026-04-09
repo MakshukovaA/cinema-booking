@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
-import FilmPage from './pages/FilmPage';
+import FilmsPage from './pages/FilmPage';
 import BookingPage from './pages/BookingPage';
 import SessionListPage from './pages/SessionListPage'; 
 import LoginForm from './components/LoginForm';
@@ -13,7 +13,7 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/film/:filmId" element={<FilmPage />} />
+          <Route path="/films" element={<FilmsPage />} />
           <Route path="/sessions/:filmId" element={<SessionListPage />} /> 
           <Route path="/booking/:sessionId" element={<BookingPage />} />
         </Route>

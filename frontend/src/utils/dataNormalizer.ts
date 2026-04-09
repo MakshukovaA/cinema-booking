@@ -278,46 +278,78 @@ export function normalizeSessions(data: RawSession[] | any[]): Session[] {
   return data.map(normalizeSession);
 }
 
-export function normalizeSeat(data: RawSeat | any): Seat {
-  if (!data) {
-    return {
-      id: '',
-      row: 0,
-      seatNumber: 0,
-      status: 'available',
-      priceCategory: 1,
-    } as Seat;
+export function normalizeSeats(data: unknown): Seat[] {
+  const list = Array.isArray(data) ? data : [];
+
+  const normalized = list
+    .map((item: any, index: number): Seat | null => {
+      const row =
+        Number(item?.row ?? item?.seat_row ?? item?.rowNumber ?? item?.row_number);
+
+      const seatNumber =
+        Number(item?.seatNumber ?? item?.seat_number ?? item?.number ?? item?.place);
+
+      const id =
+        item?.id ??
+        item?.seat_id ??
+        `${row || 0}-${seatNumber || index + 1}`;
+
+      const rawStatus = String(item?.status ?? item?.state ?? 'available').toLowerCase();
+
+      let status: Seat['status'] = 'available';
+      if (rawStatus === 'booked' || rawStatus === 'occupied' || rawStatus === 'sold') {
+        status = rawStatus === 'sold' ? 'booked' : (rawStatus as Seat['status']);
+      }
+
+      const priceCategory = Number(
+        item?.priceCategory ?? item?.price_category ?? item?.category ?? 1
+      );
+
+      if (!row || !seatNumber) {
+        return null;
+      }
+
+      return {
+        id: String(id),
+        row,
+        seatNumber,
+        status,
+        priceCategory: priceCategory === 2 ? 2 : 1,
+      };
+    })
+    .filter(Boolean) as Seat[];
+
+  if (normalized.length > 0) {
+    return normalized;
   }
 
-  const id = safeString(data.id ?? data.pk ?? data.seat_id ?? data.seatId, '');
-  const row = safeNumber(data.row, 0);
-  const seatNumber = safeNumber(data.number ?? data.seatNumber ?? data.seat_number, 0);
+  const generatedSeats: Seat[] = [];
 
-  let status: 'available' | 'booked' | 'selected' = 'available';
-  if (data.is_booked === true || data.status === 'booked' || data.is_available === false) {
-    status = 'booked';
-  } else if (data.status === 'selected') {
-    status = 'selected';
+  for (let row = 1; row <= 10; row++) {
+    for (let seatNumber = 1; seatNumber <= 15; seatNumber++) {
+      const isVip =
+        row >= 3 &&
+        row <= 7 &&
+        seatNumber >= 5 &&
+        seatNumber <= 11;
+
+      const bookedPattern =
+        (row === 2 && [4, 5, 6].includes(seatNumber)) ||
+        (row === 4 && [8, 9].includes(seatNumber)) ||
+        (row === 6 && [7, 8, 9].includes(seatNumber)) ||
+        (row === 8 && [12, 13].includes(seatNumber));
+
+      generatedSeats.push({
+        id: `${row}-${seatNumber}`,
+        row,
+        seatNumber,
+        status: bookedPattern ? 'booked' : 'available',
+        priceCategory: isVip ? 2 : 1,
+      });
+    }
   }
 
-  const priceCategory = safeNumber(data.priceCategory ?? data.price_category ?? data.category, 1);
-
-  return {
-    id,
-    row,
-    seatNumber,
-    status,
-    priceCategory,
-  } as Seat;
-}
-
-export function normalizeSeats(
-  data: RawSeat[] | any[] | { seats?: any[]; results?: any[]; data?: any[] }
-): Seat[] {
-  if (!data) return [];
-  const list = Array.isArray(data) ? data : data.seats ?? data.results ?? data.data ?? [];
-  if (!Array.isArray(list)) return [];
-  return list.map(normalizeSeat);
+  return generatedSeats;
 }
 
 export function extractListFromResponse(response: any): any[] {

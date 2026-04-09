@@ -4,6 +4,7 @@ import MovieList from '../components/MovieList';
 import { fetchFilms } from '../data/mockData';
 import { extractListFromResponse, normalizeFilms } from '../utils/dataNormalizer';
 import { apiJson } from '../utils/api';
+import { FREEPIK_IMAGES } from '../utilses/imageUtils'; 
 
 const HomePage: React.FC = () => {
   const [films, setFilms] = useState<Film[]>([]);
@@ -25,9 +26,7 @@ const HomePage: React.FC = () => {
           setFilms(Array.isArray(mock) ? mock : []);
           setError('Не удалось загрузить фильмы через API. Показаны мок-данные.');
         }
-      } catch (err) {
-        console.error('Error loading films from API:', err);
-
+      } catch {
         try {
           const mock = await fetchFilms();
           setFilms(Array.isArray(mock) ? mock : []);
@@ -55,34 +54,47 @@ const HomePage: React.FC = () => {
     );
   }
 
-  if (error && films.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-xl">⚠️</span>
-          </div>
-          <p className="text-lg text-red-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Попробовать снова
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4 py-8">
+      <section
+        className="relative rounded-lg overflow-hidden shadow-lg mb-8"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${FREEPIK_IMAGES.NIGHT.BACKGROUND})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          minHeight: '350px'
+        }}
+      >
+        <div className="absolute inset-0 flex items-center justify-center text-center px-4">
+          <div className="max-w-2xl text-white">
+            <img
+              src={FREEPIK_IMAGES.NIGHT.POSTER}
+              alt="Постер кинотеатра"
+              className="mx-auto mb-4 w-40 rounded-lg shadow-lg"
+            />
+            <h1 className="text-2xl md:text-4xl font-bold mb-2">🎬 Добро пожаловать в наш кинотеатр</h1>
+            <p className="mb-4 text-lg">Смотрите лучшие фильмы и бронируйте билеты онлайн</p>
+            <a
+              href="/films"
+              className="inline-block bg-blue-500 hover:bg-blue-600 px-5 py-2 rounded-md text-white font-semibold"
+            >
+              Смотреть фильмы
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-4">
         {error && (
           <div className="mb-4 rounded-lg bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3">
             {error}
           </div>
         )}
-        <MovieList films={films} />
+        <div className="flex justify-center">
+          <div className="w-full max-w-5xl">
+            <MovieList films={films} />
+          </div>
+        </div>
       </div>
     </div>
   );
