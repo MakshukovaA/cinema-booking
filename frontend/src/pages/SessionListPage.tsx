@@ -12,35 +12,33 @@ export default function SessionListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadSessions() {
-      if (!filmId) {
-        setError('Фильм не найден');
-        setLoading(false);
-        return;
-      }
 
-      try {
-        setLoading(true);
-        setError(null);
-
-        const filmData = await apiJson(`/api/movies/${filmId}/`);
-        setFilmTitle(filmData.title || `Фильм #${filmId}`);
-
-        const sessionsData = await apiJson(`/api/sessions/?film=${filmId}`);
-        const sessionsList = extractListFromResponse(sessionsData);
-        const normalizedSessions = sessionsList.map(normalizeSession);
-        setSessions(normalizedSessions.filter((s) => String(s.filmId) === String(filmId)));
-      } catch (err) {
-        console.error('Failed to load sessions:', err);
-        setError(err instanceof Error ? err.message : 'Ошибка загрузки сеансов');
-      } finally {
-        setLoading(false);
-      }
+useEffect(() => {
+  async function loadSessions() {
+    if (!filmId) {
+      setError('Фильм не найден');
+      setLoading(false);
+      return;
     }
 
-    loadSessions();
-  }, [filmId]);
+    try {
+      setLoading(true);
+      setError(null);
+
+      const sessionsData = await apiJson(`/api/sessions/?film=${filmId}`);
+      const sessionsList = extractListFromResponse(sessionsData);
+      const normalizedSessions = sessionsList.map((s: any) => normalizeSession(s));
+      setSessions(normalizedSessions);
+    } catch (err) {
+      console.error('Failed to load sessions:', err);
+      setError(err instanceof Error ? err.message : 'Ошибка загрузки сеансов');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  loadSessions();
+}, [filmId]);
 
   if (loading) {
     return (

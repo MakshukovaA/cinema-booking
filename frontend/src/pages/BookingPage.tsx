@@ -54,12 +54,12 @@ export default function BookingPage() {
             const normalizedSeats = normalizeSeats(seatsList);
             setSeats(normalizedSeats);
           } else {
-            console.warn('Available seats endpoint not available:', seatsResponse.status);
-            setSeats(normalizeSeats([]));
+            console.warn('Available seats endpoint returned:', seatsResponse.status);
+            setSeats([]);
           }
         } catch (seatsError) {
           console.warn('Failed to load seats:', seatsError);
-          setSeats(normalizeSeats([]));
+          setSeats([]);
         }
       } catch (err) {
         console.error('Failed to load booking data:', err);
@@ -105,9 +105,7 @@ export default function BookingPage() {
 
       const res = await apiFetch('/api/bookings/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
@@ -120,15 +118,49 @@ export default function BookingPage() {
       }
     } catch (err) {
       console.error('Booking error:', err);
-      alert('Ошибка бронирования');
+      alert('Ошибка бронирования. Попробуйте позже.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading) return <div className="loading">Загрузка...</div>;
-  if (error) return <div className="error">{error}</div>;
-  if (!session) return <div className="error">Сеанс не найден</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-700">Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <h2 className="text-xl font-semibold text-red-700 mb-2">Ошибка</h2>
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Вернуться назад
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+          <p className="text-yellow-700">Сеанс не найден</p>
+        </div>
+      </div>
+    );
+  }
 
   const totalPrice = selectedSeats.reduce((sum, seatId) => {
     const seat = seats.find((item) => String(item.id) === seatId);
@@ -147,13 +179,20 @@ export default function BookingPage() {
         <p><strong>Свободно:</strong> {session.availableSeats} мест</p>
       </div>
 
-      <SeatMap
-        seats={seats}
-        selectedSeats={selectedSeats}
-        onSeatClick={toggleSeat}
-      />
-
-      <SeatLegend />
+      {seats.length > 0 ? (
+        <>
+          <SeatMap
+            seats={seats}
+            selectedSeats={selectedSeats}
+            onSeatClick={toggleSeat}
+          />
+          <SeatLegend />
+        </>
+      ) : (
+        <div className="text-center py-8 text-gray-500">
+          Информация о местах недоступна
+        </div>
+      )}
 
       <BookingSummary
         selectedSeats={seats.filter((s) => selectedSeats.includes(String(s.id)))}

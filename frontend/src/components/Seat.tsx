@@ -40,8 +40,20 @@ const SeatComponent: React.FC<SeatProps> = ({ seat, isSelected, onClick, isInter
       onClick(String(seat.id));
     }
   };
-
-  const priceLabel = seat.priceCategory === 1 ? 'Стандарт (800 ₽)' : 'VIP (1200 ₽)';
+  
+  const priceLabel = (() => {
+    const priceValue = (seat as any).price;
+    if (priceValue != null) {
+      return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(Number(priceValue));
+    }
+    if (seat.priceCategory === 1) {
+      return 'Стандарт';
+    } else if (seat.priceCategory === 2) {
+      return 'VIP';
+    } else {
+      return 'Цена';
+    }
+  })();
 
   return (
     <div className="flex flex-col items-center">

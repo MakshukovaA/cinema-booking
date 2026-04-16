@@ -1,6 +1,6 @@
 export type Film = {
   id: string;
-  filmId?: string; // опционально
+  filmId?: string; 
   title: string;
   posterUrl: string;
   description: string;
@@ -9,8 +9,8 @@ export type Film = {
   year: number;
   rating: number;
   director: string;
-  cast: string[];      // <-- массив
+  cast: string[];  
   country: string;
   backgroundImage: string;
-  gallery: string[];   // <-- массив
+  gallery: string[];   
 };

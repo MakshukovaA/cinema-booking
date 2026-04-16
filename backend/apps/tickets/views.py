@@ -19,20 +19,20 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class HallViewSet(viewsets.ModelViewSet):
-    queryset = Hall.objects.all()
+    queryset = Hall.objects.all().order_by('id')
     serializer_class = HallSerializer
     permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
 
 class SeatListCreateView(generics.ListCreateAPIView):
-    queryset = Seat.objects.all()
+    queryset = Seat.objects.all().order_by('row', 'number')
     serializer_class = SeatFrontendSerializer
 
 class SeatDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Seat.objects.all()
+    queryset = Seat.objects.all().order_by('row', 'number')
     serializer_class = SeatFrontendSerializer
 
 class SeatViewSet(viewsets.ModelViewSet):
-    queryset = Seat.objects.all()
+    queryset = Seat.objects.all().order_by('id')
     serializer_class = SeatSerializer
     permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
 
@@ -47,17 +47,17 @@ class SessionViewSet(viewsets.ModelViewSet):
     permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
 
 class PricingViewSet(viewsets.ModelViewSet):
-    queryset = Pricing.objects.all()
+    queryset = Pricing.objects.all().order_by('id')
     serializer_class = PricingSerializer
     permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
 
 class BookingViewSet(viewsets.ModelViewSet):
-    queryset = Booking.objects.all()
+    queryset = Booking.objects.all().order_by('-created_at')
     serializer_class = BookingSerializer
     permission_classes = [IsAuthenticated]
 
 class TicketViewSet(viewsets.ModelViewSet):
-    queryset = Ticket.objects.all()
+    queryset = Ticket.objects.all().order_by('id')
     serializer_class = TicketSerializer
     permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
 

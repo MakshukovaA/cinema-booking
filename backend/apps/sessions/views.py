@@ -43,38 +43,40 @@ def build_session_layout(session: Session) -> dict:
         'priceMap': priceMap,
     }
 
-
 class SessionViewSet(viewsets.ModelViewSet):
     serializer_class = SessionFrontendSerializer
 
     def get_queryset(self):
         qs = Session.objects.all().select_related('movie', 'hall').order_by('start_time', 'id')
-        film_id = self.request.query_params.get('film')
-        if film_id:
-            qs = qs.filter(movie_id=film_id)
+        film_param = self.request.query_params.get('film')
+        if film_param:
+            try:
+                film_id = int(film_param)
+                qs = qs.filter(movie_id=film_id)
+            except (ValueError, TypeError):
+                qs = qs.filter(movie__title__icontains=film_param)
         return qs
 
     @action(detail=True, methods=['get'], url_path='layout')
     def layout(self, request, pk=None):
-        session = self.get_object()
-        layout_data = build_session_layout(session)
-        serializer = HallLayoutSerializer(instance=layout_data)
-        return Response(serializer.data)
-
+        ...
 
 class SessionListCreateView(generics.ListCreateAPIView):
     serializer_class = SessionFrontendSerializer
 
     def get_queryset(self):
         queryset = Session.objects.all().select_related('movie', 'hall').order_by('start_time', 'id')
-        film_id = self.request.query_params.get('film')
-        if film_id:
-            queryset = queryset.filter(movie_id=film_id)
+        film_param = self.request.query_params.get('film')
+        if film_param:
+            try:
+                film_id = int(film_param)
+                queryset = queryset.filter(movie_id=film_id)
+            except (ValueError, TypeError):
+                queryset = queryset.filter(movie__title__icontains=film_param)
         return queryset
-
-
+    
 class SessionDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Session.objects.all()
+    queryset = Session.objects.all().order_by('start_time', 'id')
     serializer_class = SessionFrontendSerializer
     lookup_field = 'pk'
 

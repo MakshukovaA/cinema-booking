@@ -6,15 +6,15 @@ from apps.sessions.models import Session
 
 
 class SeatListCreateView(generics.ListCreateAPIView):
-    queryset = Seat.objects.all()
+    queryset = Seat.objects.all().order_by('row', 'number')
     serializer_class = SeatFrontendSerializer
 
 class SeatDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Seat.objects.all()
+    queryset = Seat.objects.all().order_by('row', 'number')
     serializer_class = SeatFrontendSerializer
 
 class SeatViewSet(viewsets.ModelViewSet):
-    queryset = Seat.objects.all()
+    queryset = Seat.objects.all().order_by('id')
     serializer_class = SeatSerializer
     permission_classes = [AllowAny]
 

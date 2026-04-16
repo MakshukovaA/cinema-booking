@@ -53,7 +53,7 @@ class BookingListCreateView(generics.ListCreateAPIView):
 
 
 class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Booking.objects.all()
+    queryset = Booking.objects.all().order_by('-created_at')
     
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -260,7 +260,7 @@ class UserBookingsView(APIView):
 
 
 class BookingSeatViewSet(viewsets.ModelViewSet):
-    queryset = BookingSeat.objects.all()
+    queryset = BookingSeat.objects.all().order_by('id')
     serializer_class = BookingSeatSerializer
     permission_classes = [IsAdminGroup]
 
