@@ -1,10 +1,14 @@
 import type { Film } from '../types/film';
 import type { Session } from '../types/session';
 import { apiJson, apiFetch } from '../utils/api';
-import { normalizeFilm, normalizeFilms, normalizeSession, normalizeSessions } from '../utils/dataNormalizer';
-import { extractListFromResponse } from '../utils/dataNormalizer';
+import {
+  normalizeFilm,
+  normalizeFilms,
+  normalizeSession,
+  normalizeSessions,
+  extractListFromResponse,
+} from '../utils/dataNormalizer';
 
-// ========== FILMS ==========
 
 export const fetchFilms = async (): Promise<Film[]> => {
   try {
@@ -20,8 +24,16 @@ export const fetchFilms = async (): Promise<Film[]> => {
 export const fetchFilmById = async (filmId: string): Promise<Film | null> => {
   try {
     const data = await apiJson(`/api/movies/${filmId}/`);
-    return normalizeFilm(data);
-  } catch (error) {
+
+    const payload =
+      data && typeof data === 'object' && 'data' in data ? (data as any).data : data;
+
+    if (!payload) {
+      return null;
+    }
+
+    return normalizeFilm(payload);
+  } catch (error: any) {
     console.error(`Failed to fetch film ${filmId}:`, error);
     return null;
   }
@@ -43,14 +55,17 @@ export const fetchSessionsForFilm = async (filmId: string): Promise<Session[]> =
 export const fetchSessionById = async (sessionId: string): Promise<Session | null> => {
   try {
     const data = await apiJson(`/api/sessions/${sessionId}/`);
-    return normalizeSession(data);
+    const payload =
+      data && typeof data === 'object' && 'data' in data ? (data as any).data : data;
+    if (!payload) return null;
+    return normalizeSession(payload);
   } catch (error) {
     console.error(`Failed to fetch session ${sessionId}:`, error);
     return null;
   }
 };
 
-// ========== BOOKINGS ==========
+// ========== BOOKINGS / SEATS ==========
 
 export const fetchAvailableSeats = async (sessionId: string): Promise<any[]> => {
   try {
@@ -88,9 +103,9 @@ export const createBooking = async (payload: {
     return { success: true, bookingId: result.id };
   } catch (error) {
     console.error('Booking error:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Ошибка бронирования' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Ошибка бронирования',
     };
   }
 };
